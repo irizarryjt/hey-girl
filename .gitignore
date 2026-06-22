@@ -1,0 +1,10 @@
+node_modules
+dist
+.env
+.env.save
+*.save
+*.local
+.DS_Store
+
+# keep .env.example tracked as the template
+!.env.example

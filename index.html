@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<meta name="theme-color" content="#b5838d" />
+<title>Hey Girl — Your AI Wedding Planning Bestie</title>
+<meta name="description" content="Hey Girl is an AI wedding planning bestie who knows your budget, your guests, and your timeline — and never gets stressed." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #fdf6f3;
+    --bg-2: #f7e6e0;
+    --ink: #3a2b2b;
+    --muted: #8a7370;
+    --rose: #b5838d;
+    --rose-deep: #6d4c52;
+    --blush: #f4dcd6;
+    --gold: #c9a36a;
+    --card: #ffffff;
+    --line: #efe1dc;
+    --shadow: 0 18px 50px -20px rgba(109, 76, 82, 0.35);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    color: var(--ink);
+    background: var(--bg);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  .serif { font-family: 'Fraunces', Georgia, serif; }
+  .wrap { width: min(1120px, 92vw); margin: 0 auto; }
+  a { color: inherit; }
+
+  /* ---- Nav ---- */
+  nav {
+    position: sticky; top: 0; z-index: 20;
+    backdrop-filter: blur(12px);
+    background: rgba(253, 246, 243, 0.78);
+    border-bottom: 1px solid var(--line);
+  }
+  .nav-inner { display: flex; align-items: center; justify-content: space-between; padding: 16px 0; }
+  .logo { font-family: 'Fraunces', serif; font-weight: 600; font-size: 22px; letter-spacing: .2px; color: var(--rose-deep); }
+  .logo span { color: var(--rose); }
+  .nav-links { display: flex; gap: 28px; align-items: center; font-size: 15px; color: var(--muted); }
+  .nav-links a { text-decoration: none; transition: color .2s; }
+  .nav-links a:hover { color: var(--rose-deep); }
+  .btn {
+    display: inline-block; background: var(--rose); color: #fff; text-decoration: none;
+    padding: 11px 22px; border-radius: 999px; font-weight: 600; font-size: 15px;
+    transition: transform .15s ease, box-shadow .2s ease, background .2s;
+    box-shadow: 0 8px 20px -8px rgba(181, 131, 141, 0.7);
+  }
+  .btn:hover { transform: translateY(-1px); background: var(--rose-deep); }
+  .btn.ghost { background: transparent; color: var(--rose-deep); box-shadow: none; border: 1px solid var(--rose); }
+  .btn.ghost:hover { background: var(--blush); color: var(--rose-deep); }
+  @media (max-width: 720px) { .nav-links a:not(.btn) { display: none; } }
+
+  /* ---- Hero ---- */
+  .hero { position: relative; overflow: hidden; padding: 84px 0 72px; }
+  .hero::before {
+    content: ''; position: absolute; inset: 0; z-index: 0;
+    background:
+      radial-gradient(60% 55% at 78% 12%, rgba(201, 163, 106, 0.16), transparent 60%),
+      radial-gradient(70% 60% at 12% 8%, rgba(181, 131, 141, 0.18), transparent 60%);
+  }
+  .hero .wrap { position: relative; z-index: 1; display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 48px; align-items: center; }
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--blush); color: var(--rose-deep);
+    padding: 7px 14px; border-radius: 999px; font-size: 13px; font-weight: 600;
+    letter-spacing: .3px; margin-bottom: 22px;
+  }
+  .savedate { margin-bottom: 20px; padding-bottom: 18px; border-bottom: 1px solid var(--line); }
+  .sd-label { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--rose); font-weight: 600; }
+  .sd-date { font-family: 'Fraunces', serif; font-size: clamp(22px, 3vw, 30px); font-weight: 600; color: var(--rose-deep); line-height: 1.1; margin-top: 4px; }
+  .sd-names { font-family: 'Fraunces', serif; font-style: italic; font-size: 16px; color: var(--muted); margin-top: 4px; }
+  .hero h1 { font-size: clamp(40px, 5.6vw, 64px); line-height: 1.04; font-weight: 500; letter-spacing: -0.5px; }
+  .hero h1 em { font-style: italic; color: var(--rose); }
+  .hero p.lede { margin-top: 22px; font-size: 19px; color: var(--muted); max-width: 36ch; }
+  .hero-cta { margin-top: 32px; display: flex; gap: 14px; flex-wrap: wrap; }
+  .trust { margin-top: 26px; font-size: 14px; color: var(--muted); display: flex; align-items: center; gap: 10px; }
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--gold); }
+
+  /* phone mockup */
+  .phone {
+    justify-self: center;
+    width: 300px; max-width: 80vw; aspect-ratio: 9 / 18.5;
+    background: #fff; border-radius: 38px; padding: 14px;
+    box-shadow: var(--shadow); border: 1px solid var(--line);
+    position: relative;
+  }
+  .phone-screen { height: 100%; background: var(--bg); border-radius: 26px; overflow: hidden; display: flex; flex-direction: column; }
+  .phone-top { background: linear-gradient(135deg, var(--rose), var(--rose-deep)); color: #fff; padding: 20px 18px 16px; }
+  .phone-top .pl { font-family: 'Fraunces', serif; font-size: 19px; font-weight: 600; }
+  .phone-top .ps { font-size: 12px; opacity: .9; }
+  .phone-body { flex: 1; padding: 16px 14px; display: flex; flex-direction: column; gap: 10px; }
+  .b { position: relative; padding: 9px 13px; border-radius: 18px; font-size: 13.5px; max-width: 86%; line-height: 1.4; }
+  .b.them {
+    align-self: flex-start; background: #fff; color: var(--ink);
+    font-family: Georgia, 'Times New Roman', serif;
+    box-shadow: 0 1px 1.5px rgba(109, 76, 82, 0.12);
+  }
+  .b.them strong { color: var(--rose-deep); font-weight: 700; }
+  .b.them::before { content: ''; position: absolute; z-index: -1; bottom: 0; left: -6px; width: 16px; height: 16px; background: #fff; border-bottom-right-radius: 14px; }
+  .b.them::after { content: ''; position: absolute; z-index: -1; bottom: 0; left: -11px; width: 13px; height: 16px; background: var(--bg); border-bottom-right-radius: 10px; }
+  .b.you { align-self: flex-end; background: var(--rose); color: #fff; }
+  .b.you::before { content: ''; position: absolute; z-index: -1; bottom: 0; right: -6px; width: 16px; height: 16px; background: var(--rose); border-bottom-left-radius: 14px; }
+  .b.you::after { content: ''; position: absolute; z-index: -1; bottom: 0; right: -11px; width: 13px; height: 16px; background: var(--bg); border-bottom-left-radius: 10px; }
+  .phone-input { margin: 0 14px 16px; background: #fff; border: 1px solid var(--line); border-radius: 999px; padding: 10px 14px; font-size: 13px; color: var(--muted); display: flex; justify-content: space-between; align-items: center; }
+  .phone-input span:last-child { color: var(--rose); font-weight: 600; }
+  @media (max-width: 880px) {
+    .hero .wrap { grid-template-columns: 1fr; text-align: center; }
+    .hero p.lede { margin-left: auto; margin-right: auto; }
+    .hero-cta, .trust { justify-content: center; }
+    .phone { order: -1; }
+  }
+
+  /* ---- Byline band ---- */
+  .byline { background: var(--rose-deep); color: #fff; padding: 64px 0; text-align: center; }
+  .byline p {
+    font-family: 'Fraunces', serif; font-style: italic; font-weight: 400;
+    font-size: clamp(26px, 4vw, 40px); line-height: 1.3; max-width: 20ch; margin: 0 auto;
+  }
+  .byline .quote-mark { font-size: 56px; color: var(--gold); line-height: 0; display: block; margin-bottom: 18px; font-family: 'Fraunces', serif; }
+  .byline .sig { margin-top: 22px; font-size: 14px; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.7); font-family: 'Inter', sans-serif; font-style: normal; }
+
+  /* ---- Differentiators ---- */
+  .diff { padding: 88px 0; }
+  .section-head { text-align: center; max-width: 620px; margin: 0 auto 54px; }
+  .section-head .kicker { color: var(--rose); font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; font-size: 13px; }
+  .section-head h2 { font-size: clamp(30px, 4vw, 44px); font-weight: 500; margin-top: 12px; letter-spacing: -0.4px; line-height: 1.12; }
+  .section-head p { margin-top: 16px; color: var(--muted); font-size: 17px; }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+  .card {
+    background: var(--card); border: 1px solid var(--line); border-radius: 22px; padding: 30px 26px;
+    transition: transform .2s ease, box-shadow .25s ease;
+  }
+  .card:hover { transform: translateY(-4px); box-shadow: var(--shadow); }
+  .card .ic { width: 48px; height: 48px; border-radius: 14px; background: var(--blush); display: grid; place-items: center; font-size: 24px; margin-bottom: 18px; }
+  .card h3 { font-family: 'Fraunces', serif; font-size: 21px; font-weight: 600; margin-bottom: 8px; }
+  .card p { color: var(--muted); font-size: 15.5px; }
+  .card .vs { display: block; margin-top: 14px; font-size: 13.5px; color: var(--rose-deep); font-weight: 500; }
+  @media (max-width: 880px) { .grid { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 560px) { .grid { grid-template-columns: 1fr; } }
+
+  /* ---- Comparison strip ---- */
+  .compare { background: var(--bg-2); padding: 80px 0; }
+  .compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 860px; margin: 40px auto 0; }
+  .col { background: #fff; border-radius: 20px; padding: 30px; border: 1px solid var(--line); }
+  .col.them { background: transparent; border-style: dashed; }
+  .col h4 { font-family: 'Fraunces', serif; font-size: 20px; margin-bottom: 18px; }
+  .col.us h4 { color: var(--rose-deep); }
+  .col ul { list-style: none; display: flex; flex-direction: column; gap: 13px; }
+  .col li { display: flex; gap: 11px; font-size: 15px; align-items: flex-start; }
+  .col li .m { flex-shrink: 0; font-weight: 700; }
+  .col.us li .m { color: var(--rose); }
+  .col.them li { color: var(--muted); }
+  .col.them li .m { color: #c4b3af; }
+  @media (max-width: 640px) { .compare-grid { grid-template-columns: 1fr; } }
+
+  /* ---- CTA ---- */
+  .final { padding: 96px 0; text-align: center; }
+  .final h2 { font-size: clamp(32px, 4.5vw, 50px); font-weight: 500; letter-spacing: -0.4px; }
+  .final h2 em { font-style: italic; color: var(--rose); }
+  .final p { color: var(--muted); font-size: 18px; margin: 18px auto 32px; max-width: 44ch; }
+
+  footer { border-top: 1px solid var(--line); padding: 34px 0; color: var(--muted); font-size: 14px; }
+  .foot-inner { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap nav-inner">
+    <div class="logo">Hey&nbsp;<span>Girl!</span></div>
+    <div class="nav-links">
+      <a href="#different">Why we're different</a>
+      <a href="#compare">Compare</a>
+      <a class="btn" href="/app/">Open the app</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <div>
+      <div class="savedate" id="savedate" hidden>
+        <div class="sd-label">Save the date</div>
+        <div class="sd-date" id="sdDate"></div>
+        <div class="sd-names" id="sdNames"></div>
+      </div>
+      <span class="eyebrow">Your wedding planning bestie</span>
+      <h1 class="serif">The wedding planner who <em>actually</em> texts back.</h1>
+      <p class="lede">Hey Girl knows your budget, your guest list, and your timeline — and answers in seconds, day or night.</p>
+      <div class="hero-cta">
+        <a class="btn" href="/app/">Start planning free</a>
+        <a class="btn ghost" href="#different">See how she helps</a>
+      </div>
+      <div class="trust"><span class="dot"></span> No spreadsheets. No stress. No 47 browser tabs.</div>
+    </div>
+
+    <div class="phone" aria-hidden="true">
+      <div class="phone-screen">
+        <div class="phone-top">
+          <div class="pl">Hey Girl</div>
+          <div class="ps">Alex &amp; Sam · 98 days to go</div>
+        </div>
+        <div class="phone-body">
+          <div class="b you">What's left in the flowers budget?</div>
+          <div class="b them">You've got <strong>$1,800</strong> left of your $3,000 flowers estimate 🌸 Want me to find florists in your range?</div>
+          <div class="b you">Yes please!</div>
+          <div class="b them">On it. Three near your venue, all reviewed 4.8★+ ✨</div>
+        </div>
+        <div class="phone-input"><span>Ask Hey Girl anything…</span><span>Send</span></div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section class="byline">
+  <div class="wrap">
+    <p class="serif">Think of me as a bridesmaid that never gets stressed out.</p>
+    <div class="sig">— Hey Girl</div>
+  </div>
+</section>
+
+<section class="diff" id="different">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="kicker">Why Hey Girl is different</span>
+      <h2 class="serif">Not another checklist app. A planning partner.</h2>
+      <p>Most wedding sites hand you blank templates and walk away. Hey Girl actually does the thinking with you.</p>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <div class="ic">💬</div>
+        <h3>She answers, not just organizes</h3>
+        <p>Ask in plain words — "am I on track?", "what do I do 3 months out?" — and get a real answer, not a blank to-do list.</p>
+        <span class="vs">vs. static checklists you fill in yourself</span>
+      </div>
+      <div class="card">
+        <div class="ic">💰</div>
+        <h3>She knows your budget</h3>
+        <p>"What's left for catering?" gets you an exact number. Hey Girl tracks estimated vs. actual and flags when you're drifting over.</p>
+        <span class="vs">vs. a separate spreadsheet you forget to update</span>
+      </div>
+      <div class="card">
+        <div class="ic">🔗</div>
+        <h3>Your guests ask her, not you</h3>
+        <p>Share one link and guests get their own Hey Girl for the date, venue, dress code, parking — so your phone stops buzzing.</p>
+        <span class="vs">vs. answering the same text 200 times</span>
+      </div>
+      <div class="card">
+        <div class="ic">🔒</div>
+        <h3>Private by design</h3>
+        <p>Guests never see your budget, your notes, or the full guest list. The shareable link carries only what you choose to publish.</p>
+        <span class="vs">vs. accounts where everything's lumped together</span>
+      </div>
+      <div class="card">
+        <div class="ic">📲</div>
+        <h3>Lives on your home screen</h3>
+        <p>Install it like an app, open it offline. No logins to chase, no clunky dashboards — just open and ask.</p>
+        <span class="vs">vs. heavy portals that need a laptop</span>
+      </div>
+      <div class="card">
+        <div class="ic">🤍</div>
+        <h3>Calm, anytime</h3>
+        <p>3am spiral about seating charts? She's awake, unbothered, and ready to help you sort it out — judgment-free.</p>
+        <span class="vs">vs. waiting on a planner's business hours</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="compare" id="compare">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="kicker">The honest comparison</span>
+      <h2 class="serif">Same big day. A very different lead-up.</h2>
+    </div>
+    <div class="compare-grid">
+      <div class="col them">
+        <h4>Other planning sites</h4>
+        <ul>
+          <li><span class="m">–</span> Generic templates you fill in alone</li>
+          <li><span class="m">–</span> Budget lives in a separate spreadsheet</li>
+          <li><span class="m">–</span> You field every guest question yourself</li>
+          <li><span class="m">–</span> Endless tabs, logins, and dashboards</li>
+          <li><span class="m">–</span> Help only when you go digging for it</li>
+        </ul>
+      </div>
+      <div class="col us">
+        <h4>Hey Girl</h4>
+        <ul>
+          <li><span class="m">✓</span> Ask anything, get a real answer back</li>
+          <li><span class="m">✓</span> Budget she knows and tracks for you</li>
+          <li><span class="m">✓</span> One link lets guests ask her instead</li>
+          <li><span class="m">✓</span> One calm app, on your home screen</li>
+          <li><span class="m">✓</span> A bestie on call, 24/7, never stressed</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="final">
+  <div class="wrap">
+    <h2 class="serif">Plan the wedding. <em>Skip</em> the spiral.</h2>
+    <p>Meet the bridesmaid who never gets stressed out — and never lets you forget a deposit.</p>
+    <a class="btn" href="/app/">Start planning with Hey Girl</a>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap foot-inner">
+    <div class="logo">Hey&nbsp;<span>Girl</span></div>
+    <div>Made with 🤍 for couples who'd rather enjoy the engagement.</div>
+  </div>
+</footer>
+
+<script>
+  // Pull the couple's saved details (same-origin localStorage) to personalize the header.
+  (function () {
+    try {
+      var raw = localStorage.getItem('heygirl.v1');
+      if (!raw) return;
+      var details = (JSON.parse(raw) || {}).details || {};
+      var box = document.getElementById('savedate');
+      var dateEl = document.getElementById('sdDate');
+      var namesEl = document.getElementById('sdNames');
+      var has = false;
+      if (details.date) {
+        var p = String(details.date).split('-').map(Number);
+        if (p[0] && p[1] && p[2]) {
+          dateEl.textContent = new Date(p[0], p[1] - 1, p[2]).toLocaleDateString('en-US', {
+            weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'
+          });
+          has = true;
+        }
+      }
+      if (details.coupleNames) { namesEl.textContent = details.coupleNames; has = true; }
+      if (has) box.hidden = false;
+    } catch (e) {}
+  })();
+</script>
+
+</body>
+</html>
