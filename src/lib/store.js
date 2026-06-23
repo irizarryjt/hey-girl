@@ -27,16 +27,16 @@ const seedEvents = [
   { id: 'e2', date: '2026-08-15', title: 'RSVP deadline', notes: 'Chase down stragglers' },
 ]
 
-export const defaultSettings = { notifyTimeline: false }
+export const defaultSettings = { notifyTimeline: false, notifiedDue: {} }
 
 export const defaultBudget = {
   total: 35000,
   items: [
-    { id: 'b1', category: 'Venue', vendor: 'The Rosewood Barn', website: 'https://example.com/rosewood-barn', estimated: 12000, actual: 12000, paidAmount: 12000 },
-    { id: 'b2', category: 'Catering', vendor: '', website: '', estimated: 9000, actual: 9000, paidAmount: 2000 },
-    { id: 'b3', category: 'Photography', vendor: '', website: '', estimated: 4500, actual: 2250, paidAmount: 1000 },
-    { id: 'b4', category: 'Flowers', vendor: '', website: '', estimated: 3000, actual: 1200, paidAmount: 0 },
-    { id: 'b5', category: 'Attire', vendor: '', website: '', estimated: 2500, actual: 1800, paidAmount: 1800 },
+    { id: 'b1', category: 'Venue', vendor: 'The Rosewood Barn', website: 'https://example.com/rosewood-barn', estimated: 12000, actual: 12000, paidAmount: 12000, dueDate: '' },
+    { id: 'b2', category: 'Catering', vendor: '', website: '', estimated: 9000, actual: 9000, paidAmount: 2000, dueDate: '2026-08-20' },
+    { id: 'b3', category: 'Photography', vendor: '', website: '', estimated: 4500, actual: 2250, paidAmount: 1000, dueDate: '2026-09-01' },
+    { id: 'b4', category: 'Flowers', vendor: '', website: '', estimated: 3000, actual: 1200, paidAmount: 0, dueDate: '2026-09-05' },
+    { id: 'b5', category: 'Attire', vendor: '', website: '', estimated: 2500, actual: 1800, paidAmount: 1800, dueDate: '' },
   ],
 }
 
@@ -102,7 +102,7 @@ export function useStore() {
         ...s.budget,
         items: [
           ...s.budget.items,
-          { id: crypto.randomUUID(), category: 'New item', vendor: '', website: '', estimated: 0, actual: 0, paidAmount: 0, ...item },
+          { id: crypto.randomUUID(), category: 'New item', vendor: '', website: '', estimated: 0, actual: 0, paidAmount: 0, dueDate: '', ...item },
         ],
       },
     }))
@@ -131,6 +131,13 @@ export function useStore() {
   const setNotifyTimeline = (on) =>
     setState((s) => ({ ...s, settings: { ...s.settings, notifyTimeline: !!on } }))
 
+  // Remember a due-date reminder we've already shown, so it fires only once.
+  const markDueNotified = (key) =>
+    setState((s) => ({
+      ...s,
+      settings: { ...s.settings, notifiedDue: { ...(s.settings.notifiedDue || {}), [key]: true } },
+    }))
+
   return {
     ...state,
     setDetails,
@@ -145,6 +152,7 @@ export function useStore() {
     updateEvent,
     removeEvent,
     setNotifyTimeline,
+    markDueNotified,
   }
 }
 

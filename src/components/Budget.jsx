@@ -48,6 +48,7 @@ export default function Budget({ budget, setBudgetTotal, addBudgetItem, updateBu
           <span>Actual</span>
           <span>Paid</span>
           <span>Owe</span>
+          <span>Due</span>
           <span></span>
         </div>
         {budget.items.map((it) => {
@@ -103,6 +104,13 @@ export default function Budget({ budget, setBudgetTotal, addBudgetItem, updateBu
               <span className={`owe ${settled ? 'settled' : ''}`} title="Still owed">
                 {settled ? '✓' : money(owe)}
               </span>
+              <input
+                type="date"
+                className="bdue"
+                value={it.dueDate || ''}
+                onChange={(e) => updateBudgetItem(it.id, { dueDate: e.target.value })}
+                title="Payment due date"
+              />
               <button className="del small" onClick={() => removeBudgetItem(it.id)} title="Remove">×</button>
             </div>
           )

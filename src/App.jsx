@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useStore, guestStats } from './lib/store.js'
 import { getSharedDetails } from './lib/share.js'
 import { enableNotifications, showNotification } from './lib/notify.js'
@@ -56,6 +56,30 @@ export default function App() {
   const [tab, setTab] = useState('chat')
   const stats = guestStats(store.guests)
 
+  // When notifications are on, remind about budget balances due within 3 days.
+  useEffect(() => {
+    if (!store.settings.notifyTimeline) return
+    if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return
+    const now = new Date()
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+    const money = (n) => `$${Math.round(Number(n) || 0).toLocaleString('en-US')}`
+    for (const it of store.budget?.items || []) {
+      if (!it.dueDate) continue
+      const owe = Math.max(0, (Number(it.actual) || 0) - (Number(it.paidAmount) || 0))
+      if (owe <= 0) continue
+      const key = `${it.id}:${it.dueDate}`
+      if (store.settings.notifiedDue?.[key]) continue
+      const [y, m, d] = it.dueDate.split('-').map(Number)
+      if (!y || !m || !d) continue
+      const days = Math.round((new Date(y, m - 1, d) - today) / 86400000)
+      if (days >= 0 && days <= 3) {
+        const when = days === 0 ? 'today' : days === 1 ? 'tomorrow' : `in ${days} days`
+        showNotification('Payment due soon 💰', `${it.category}: ${money(owe)} due ${when}.`)
+        store.markDueNotified(key)
+      }
+    }
+  }, [store.settings.notifyTimeline, store.budget, store.settings.notifiedDue])
+
   async function handleToggleNotify(wantOn) {
     if (wantOn) {
       const { ok, reason } = await enableNotifications()
@@ -106,6 +130,7 @@ export default function App() {
           <Calendar
             details={store.details}
             events={store.events}
+            budget={store.budget}
             addEvent={store.addEvent}
             updateEvent={store.updateEvent}
             removeEvent={store.removeEvent}

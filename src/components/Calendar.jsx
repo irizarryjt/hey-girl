@@ -31,7 +31,10 @@ function fmt(str) {
   return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })
 }
 
-export default function Calendar({ details, events, addEvent, updateEvent, removeEvent }) {
+const money = (n) =>
+  `$${Math.round(Number(n) || 0).toLocaleString('en-US')}`
+
+export default function Calendar({ details, events, budget, addEvent, updateEvent, removeEvent }) {
   const [title, setTitle] = useState('')
   const [date, setDate] = useState('')
 
@@ -40,7 +43,22 @@ export default function Calendar({ details, events, addEvent, updateEvent, remov
     ? { id: '__wedding__', date: details.date, title: `${details.coupleNames || 'The'} wedding 💍`, time: details.time, anchor: true }
     : null
 
-  const all = [...(weddingDay ? [weddingDay] : []), ...events]
+  // Payment due dates flow in automatically from the Budget tab (read-only here).
+  const payments = (budget?.items || [])
+    .filter((it) => it.dueDate)
+    .map((it) => {
+      const owe = Math.max(0, (Number(it.actual) || 0) - (Number(it.paidAmount) || 0))
+      return {
+        id: `pay-${it.id}`,
+        date: it.dueDate,
+        title: `${it.category} payment due`,
+        notes: owe > 0 ? `${money(owe)} still owed` : 'Paid in full',
+        amount: owe,
+        payment: true,
+      }
+    })
+
+  const all = [...(weddingDay ? [weddingDay] : []), ...events, ...payments]
   const sorted = all
     .filter((e) => e.date)
     .sort((a, b) => a.date.localeCompare(b.date))
@@ -57,8 +75,8 @@ export default function Calendar({ details, events, addEvent, updateEvent, remov
   return (
     <div className="panel">
       <p className="hint">
-        Your wedding day comes straight from the <strong>Details</strong> tab. Add your own milestones below — or
-        when a date comes up in chat, tap <em>Add to calendar</em> and Hey Girl drops it right here.
+        Your wedding day comes from <strong>Details</strong> and payment due dates flow in from <strong>Budget</strong>,
+        automatically. Add your own milestones below — or when a date comes up in chat, tap <em>Add to calendar</em>.
       </p>
 
       <form className="add-event" onSubmit={submit}>
@@ -73,55 +91,63 @@ export default function Calendar({ details, events, addEvent, updateEvent, remov
       </form>
 
       <ul className="timeline">
-        {sorted.map((e) => (
-          <li key={e.id} className={`tl-item ${e.anchor ? 'anchor' : ''}`}>
-            <div className="tl-dot" />
-            <div className="tl-body">
-              {e.anchor ? (
-                <div className="tl-title">{e.title}{e.time ? ` · ${e.time}` : ''}</div>
-              ) : (
-                <input
-                  className="tl-title-input"
-                  value={e.title}
-                  onChange={(ev) => updateEvent(e.id, { title: ev.target.value })}
-                />
-              )}
-              <div className="tl-meta">
-                <span>{fmt(e.date)}</span>
-                <span className="tl-count">{countdown(e.date)}</span>
+        {sorted.map((e) => {
+          const editable = !e.anchor && !e.payment
+          return (
+            <li key={e.id} className={`tl-item ${e.anchor ? 'anchor' : ''} ${e.payment ? 'payment' : ''}`}>
+              <div className="tl-dot" />
+              <div className="tl-body">
+                {editable ? (
+                  <input
+                    className="tl-title-input"
+                    value={e.title}
+                    onChange={(ev) => updateEvent(e.id, { title: ev.target.value })}
+                  />
+                ) : (
+                  <div className="tl-title">
+                    {e.title}
+                    {e.time ? ` · ${e.time}` : ''}
+                    {e.payment && e.amount > 0 ? ` · ${money(e.amount)}` : ''}
+                  </div>
+                )}
+                <div className="tl-meta">
+                  <span>{fmt(e.date)}</span>
+                  <span className="tl-count">{countdown(e.date)}</span>
+                </div>
+                {editable && (
+                  <input
+                    className="tl-notes"
+                    placeholder="Notes"
+                    value={e.notes || ''}
+                    onChange={(ev) => updateEvent(e.id, { notes: ev.target.value })}
+                  />
+                )}
+                {e.payment && <div className="tl-subnote">{e.notes}</div>}
+                <button
+                  type="button"
+                  className="tl-download"
+                  onClick={() => downloadICS(eventFilename(e), icsForEvents([e]))}
+                  title="Download this event (.ics)"
+                >
+                  📥 Add to my calendar
+                </button>
               </div>
-              {!e.anchor && (
-                <input
-                  className="tl-notes"
-                  placeholder="Notes"
-                  value={e.notes || ''}
-                  onChange={(ev) => updateEvent(e.id, { notes: ev.target.value })}
-                />
+              {e.anchor && <span className="tl-lock" title="Set on the Details tab">📋</span>}
+              {e.payment && <span className="tl-lock" title="From the Budget tab">💰</span>}
+              {editable && (
+                <div className="tl-actions">
+                  <input
+                    type="date"
+                    value={e.date}
+                    onChange={(ev) => updateEvent(e.id, { date: ev.target.value })}
+                    title="Change date"
+                  />
+                  <button className="del small" onClick={() => removeEvent(e.id)} title="Remove">×</button>
+                </div>
               )}
-              <button
-                type="button"
-                className="tl-download"
-                onClick={() => downloadICS(eventFilename(e), icsForEvents([e]))}
-                title="Download this event (.ics)"
-              >
-                📥 Add to my calendar
-              </button>
-            </div>
-            {e.anchor ? (
-              <span className="tl-lock" title="Set on the Details tab">📋</span>
-            ) : (
-              <div className="tl-actions">
-                <input
-                  type="date"
-                  value={e.date}
-                  onChange={(ev) => updateEvent(e.id, { date: ev.target.value })}
-                  title="Change date"
-                />
-                <button className="del small" onClick={() => removeEvent(e.id)} title="Remove">×</button>
-              </div>
-            )}
-          </li>
-        ))}
+            </li>
+          )
+        })}
       </ul>
 
       {sorted.length > 0 && (
