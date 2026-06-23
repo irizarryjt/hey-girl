@@ -176,8 +176,15 @@ app.post('/api/chat', async (req, res) => {
 
     res.json({ reply })
   } catch (err) {
-    console.error('Chat error:', err?.message || err)
-    res.status(500).json({ error: 'Hey Girl hit a snag. Check the server logs and your API key.' })
+    const status = err?.status || err?.statusCode
+    const detail = err?.error?.error?.message || err?.message || String(err)
+    console.error('Chat error:', status || '', detail)
+    let hint = 'Hey Girl hit a snag.'
+    if (status === 401) hint = 'API key was rejected (401) — check ANTHROPIC_API_KEY on the server.'
+    else if (status === 404) hint = `Model not found (404) — check CLAUDE_MODEL ("${MODEL}").`
+    else if (status === 429) hint = 'Rate limited or out of credits (429) — add credits in the Anthropic console.'
+    else if (status === 400) hint = `Bad request (400): ${detail}`
+    res.status(status && status < 500 ? status : 500).json({ error: hint })
   }
 })
 
