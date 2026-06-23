@@ -66,5 +66,19 @@ The current "Notify me about timeline tasks" toggle uses on-device Web Notificat
 
 This pairs naturally with the database + auth work below, since both need a real backend.
 
+### OCR for scanned documents
+Document upload currently extracts text from text-based PDFs and Word files. Scanned
+documents (or photos of a quote) are images with no selectable text, so nothing is
+extracted. To support them, add OCR:
+
+1. Detect when an uploaded PDF/image yields little or no text.
+2. Run OCR on the page images — client-side with Tesseract.js (no server cost, slower),
+   or server-side via a vision model / OCR API for better accuracy on messy scans.
+3. Feed the OCR'd text into the same extraction flow (costs, due dates, options).
+4. Accept image uploads (JPG/PNG/HEIC) too, not just PDF/DOCX.
+
+A vision-capable model could also read the document image directly without a separate
+OCR step, which may be the simplest path.
+
 ### Other ideas
 Vendor manager (beyond budget links), real database + auth, per-wedding code for guest links, email/SMS RSVP reminders, and completed-event auto-archiving on the calendar.

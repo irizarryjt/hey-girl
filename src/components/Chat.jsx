@@ -205,6 +205,12 @@ export default function Chat({
         </div>
       )}
 
+      {mode !== 'guest' && messages.length <= 1 && (
+        <div className="attach-hint">
+          Tip: tap <span className="plus-pill">+</span> to attach a quote, contract, or invoice (PDF or Word) — I'll pull out the costs, due dates, and options.
+        </div>
+      )}
+
       <form className="composer" onSubmit={(e) => { e.preventDefault(); send() }}>
         {mode !== 'guest' && (
           <>
@@ -214,9 +220,9 @@ export default function Chat({
               className="attach-btn"
               onClick={() => fileRef.current?.click()}
               disabled={busy}
-              title="Upload a quote, contract, or invoice (PDF or Word)"
+              title="Attach a quote, contract, or invoice (PDF or Word) for Hey Girl to read"
             >
-              📎
+              +
             </button>
           </>
         )}

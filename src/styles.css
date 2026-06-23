@@ -252,8 +252,10 @@ button:disabled { opacity: .5; cursor: default; }
 .ev-chip.done { border-color: var(--good); color: var(--good); background: #f1f8f3; cursor: default; }
 .ev-chip.budget { border-color: var(--rose); color: var(--rose-deep); background: #fffafb; }
 .ev-chip.budget.done { border-color: var(--good); color: var(--good); background: #f1f8f3; }
-.attach-btn { flex-shrink: 0; background: #fff; border: 1px solid var(--line); border-radius: 999px; width: 42px; font-size: 18px; cursor: pointer; }
+.attach-btn { flex-shrink: 0; background: #fff; border: 1px solid var(--rose); color: var(--rose-deep); border-radius: 999px; width: 42px; font-size: 24px; font-weight: 600; line-height: 1; cursor: pointer; }
 .attach-btn:hover:not(:disabled) { background: var(--blush); }
+.attach-hint { padding: 0 16px 8px; font-size: 12.5px; color: var(--muted); line-height: 1.45; }
+.plus-pill { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 50%; border: 1px solid var(--rose); color: var(--rose-deep); font-weight: 700; font-size: 13px; vertical-align: middle; }
 
 /* ---- Calendar ---- */
 .add-event { display: flex; gap: 8px; margin-bottom: 16px; }
