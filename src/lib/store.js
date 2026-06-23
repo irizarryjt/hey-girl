@@ -20,11 +20,11 @@ export const defaultDetails = {
   extraNotes: 'Outdoor ceremony, indoor reception. Kid-friendly until 8 PM.',
 }
 
-// Build the display name used in headers, the share link, and Hey Girl's context
-// from the structured first/last name fields: "First Last & First Last".
+// Build the display name used in headers, the share link, and Hey Girl's context.
+// Displays first names only: "First & First".
 export function composeCoupleNames(d = {}) {
-  const a = [d.partner1First, d.partner1Last].filter(Boolean).join(' ').trim()
-  const b = [d.partner2First, d.partner2Last].filter(Boolean).join(' ').trim()
+  const a = (d.partner1First || '').trim()
+  const b = (d.partner2First || '').trim()
   return [a, b].filter(Boolean).join(' & ')
 }
 
