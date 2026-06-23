@@ -36,7 +36,9 @@ if (SITE_PASSWORD) {
 }
 
 const apiKey = process.env.ANTHROPIC_API_KEY
-const client = apiKey ? new Anthropic({ apiKey }) : null
+// maxRetries lets the SDK automatically retry transient connection drops
+// (e.g. "Premature close"); timeout guards against a hung request.
+const client = apiKey ? new Anthropic({ apiKey, maxRetries: 4, timeout: 60000 }) : null
 
 // --- System prompts per persona ---------------------------------
 
