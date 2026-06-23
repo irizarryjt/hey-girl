@@ -4,7 +4,11 @@ import { useEffect, useState } from 'react'
 const KEY = 'heygirl.v1'
 
 export const defaultDetails = {
-  coupleNames: 'Alex & Sam',
+  partner1First: 'Fiancée',
+  partner1Last: '',
+  partner2First: 'Fiancé',
+  partner2Last: '',
+  coupleNames: 'Fiancée & Fiancé',
   date: '2026-09-19',
   time: '4:30 PM',
   venueName: 'The Rosewood Barn',
@@ -12,8 +16,36 @@ export const defaultDetails = {
   dressCode: 'Garden formal',
   registryUrl: '',
   parking: 'Free lot on-site, plus valet after 4 PM.',
-  hotelBlock: 'Block at the Sonoma Inn under "Alex & Sam Wedding".',
+  hotelBlock: 'Block at the Sonoma Inn under the wedding name.',
   extraNotes: 'Outdoor ceremony, indoor reception. Kid-friendly until 8 PM.',
+}
+
+// Build the display name used in headers, the share link, and Hey Girl's context
+// from the structured first/last name fields: "First Last & First Last".
+export function composeCoupleNames(d = {}) {
+  const a = [d.partner1First, d.partner1Last].filter(Boolean).join(' ').trim()
+  const b = [d.partner2First, d.partner2Last].filter(Boolean).join(' ').trim()
+  return [a, b].filter(Boolean).join(' & ')
+}
+
+// Upgrade older saved details (single coupleNames string) to the structured fields.
+function migrateDetails(details) {
+  if (!details) return defaultDetails
+  if (details.partner1First !== undefined || details.partner2First !== undefined) return details
+  const parts = String(details.coupleNames || '').split('&').map((s) => s.trim())
+  const splitName = (full) => {
+    const bits = String(full || '').split(/\s+/).filter(Boolean)
+    return { first: bits.shift() || '', last: bits.join(' ') }
+  }
+  const p1 = splitName(parts[0])
+  const p2 = splitName(parts[1])
+  return {
+    ...details,
+    partner1First: p1.first,
+    partner1Last: p1.last,
+    partner2First: p2.first,
+    partner2Last: p2.last,
+  }
 }
 
 const seedGuests = [
@@ -58,6 +90,7 @@ function load() {
     if (raw) {
       const parsed = JSON.parse(raw)
       // backfill / migrate for users upgrading from an earlier save
+      parsed.details = migrateDetails(parsed.details)
       parsed.budget = migrateBudget(parsed.budget)
       if (!Array.isArray(parsed.events)) parsed.events = seedEvents
       parsed.settings = { ...defaultSettings, ...(parsed.settings || {}) }
