@@ -11,6 +11,8 @@ const DIST_DIR = path.resolve(__dirname, '..', 'dist')
 
 const PORT = process.env.PORT || 8787
 const MODEL = process.env.CLAUDE_MODEL || 'claude-sonnet-4-6'
+// Used automatically when the primary model is overloaded (529).
+const FALLBACK_MODEL = process.env.FALLBACK_MODEL || 'claude-haiku-4-5-20251001'
 
 const app = express()
 app.use(cors())
@@ -163,12 +165,20 @@ app.post('/api/chat', async (req, res) => {
       .filter((m) => m && (m.role === 'user' || m.role === 'assistant') && m.content)
       .map((m) => ({ role: m.role, content: String(m.content) }))
 
-    const resp = await client.messages.create({
-      model: MODEL,
-      max_tokens: 1024,
-      system,
-      messages: cleaned,
-    })
+    // Try the primary model; if it's overloaded (529/503), fall back to an
+    // alternate model in a different capacity pool so the couple still gets a reply.
+    let resp
+    try {
+      resp = await client.messages.create({ model: MODEL, max_tokens: 1024, system, messages: cleaned })
+    } catch (primaryErr) {
+      const s = primaryErr?.status || primaryErr?.statusCode
+      if ((s === 529 || s === 503) && FALLBACK_MODEL && FALLBACK_MODEL !== MODEL) {
+        console.warn(`Primary model ${MODEL} overloaded (${s}); falling back to ${FALLBACK_MODEL}.`)
+        resp = await client.messages.create({ model: FALLBACK_MODEL, max_tokens: 1024, system, messages: cleaned })
+      } else {
+        throw primaryErr
+      }
+    }
 
     const reply = resp.content
       .filter((b) => b.type === 'text')
