@@ -186,7 +186,9 @@ app.post('/api/chat', async (req, res) => {
     else if (status === 404) hint = `Model not found (404) — check CLAUDE_MODEL ("${MODEL}").`
     else if (status === 429) hint = 'Rate limited or out of credits (429) — add credits in the Anthropic console.'
     else if (status === 400) hint = `Bad request (400): ${detail}`
-    res.status(status && status < 500 ? status : 500).json({ error: hint })
+    else if (status === 529 || status === 503)
+      hint = "Hey Girl's a little overwhelmed right now (the AI service is busy). Give it a moment and try again. 💕"
+    res.status(status && status < 500 ? status : 503).json({ error: hint })
   }
 })
 
