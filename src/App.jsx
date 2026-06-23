@@ -117,7 +117,7 @@ export default function App() {
             timelineOffer
             notifyEnabled={store.settings.notifyTimeline}
             onToggleNotify={handleToggleNotify}
-            intro="Congratulations on your engagement! I'm your wedding planning bestie. Ask me about your timeline, budget, etiquette, or anything wedding related. What's on your mind?"
+            intro="Congratulations on your engagement! I'm your wedding planning bestie. Ask me about your timeline, budget, etiquette, or anything wedding related."
             suggestions={[
               "What's left in the flowers budget?",
               'When should I send save-the-dates?',
