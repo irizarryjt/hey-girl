@@ -114,6 +114,7 @@ export default function App() {
             budget={store.budget}
             events={store.events}
             onAddEvent={store.addEvent}
+            onAddBudgetItem={store.addBudgetItem}
             timelineOffer
             notifyEnabled={store.settings.notifyTimeline}
             onToggleNotify={handleToggleNotify}
