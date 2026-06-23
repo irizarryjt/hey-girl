@@ -80,5 +80,19 @@ extracted. To support them, add OCR:
 A vision-capable model could also read the document image directly without a separate
 OCR step, which may be the simplest path.
 
+### Model tier by plan (Sonnet free / Opus paid)
+Default everyone to Claude Sonnet 4.6 (current behavior) and offer Claude Opus 4.8 as a
+premium benefit for paid users.
+
+- Pricing context (June 2026): Sonnet 4.6 = $3/$15 per Mtok in/out; Opus 4.8 = $5/$25
+  (~65% more). Typical chat turn ≈ 1.3¢ Sonnet vs ~2.2¢ Opus, so gate Opus to paid plans
+  to cap cost exposure to paying users.
+- Requires the accounts + plans/billing system below: resolve the user's plan per request,
+  then choose the model server-side (don't trust a client-sent model).
+- Keep a fallback for each tier (e.g. Opus → Sonnet → Haiku) so an overloaded premium
+  model still returns a reply.
+- Until accounts exist, the model is set globally via the CLAUDE_MODEL env var (and the
+  529 fallback to FALLBACK_MODEL already in place).
+
 ### Other ideas
 Vendor manager (beyond budget links), real database + auth, per-wedding code for guest links, email/SMS RSVP reminders, and completed-event auto-archiving on the calendar.
