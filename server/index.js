@@ -5,6 +5,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import fs from 'node:fs'
 import Anthropic from '@anthropic-ai/sdk'
+import { createClient } from '@supabase/supabase-js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const DIST_DIR = path.resolve(__dirname, '..', 'dist')
@@ -157,8 +158,42 @@ Published wedding details:
 ${JSON.stringify(publicDetails, null, 2)}`
 }
 
+// Supabase admin client (service role) — only used to serve guests a public
+// subset of a wedding by its share token. Never expose this key to the browser.
+const SB_URL = process.env.SUPABASE_URL
+const SB_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
+const sbAdmin = SB_URL && SB_SERVICE_KEY ? createClient(SB_URL, SB_SERVICE_KEY, { auth: { persistSession: false } }) : null
+
+const PUBLIC_DETAIL_KEYS = [
+  'coupleNames', 'date', 'time', 'venueName', 'venueAddress',
+  'dressCode', 'registryUrl', 'parking', 'hotelBlock', 'extraNotes',
+]
+function pickPublicDetails(d = {}) {
+  const out = {}
+  for (const k of PUBLIC_DETAIL_KEYS) if (d[k]) out[k] = d[k]
+  return out
+}
+
 app.get('/api/health', (req, res) => {
-  res.json({ ok: true, hasKey: !!apiKey, model: MODEL })
+  res.json({ ok: true, hasKey: !!apiKey, model: MODEL, guestSharing: !!sbAdmin })
+})
+
+// Public, read-only: returns ONLY whitelisted wedding details for a share token.
+app.get('/api/guest/:token', async (req, res) => {
+  if (!sbAdmin) return res.status(503).json({ error: 'Guest sharing isn’t set up yet.' })
+  try {
+    const { data, error } = await sbAdmin
+      .from('weddings')
+      .select('data')
+      .eq('share_token', req.params.token)
+      .maybeSingle()
+    if (error) throw error
+    if (!data) return res.status(404).json({ error: 'This guest link is invalid or has expired.' })
+    res.json({ details: pickPublicDetails(data.data?.details || {}) })
+  } catch (err) {
+    console.error('Guest fetch error:', err?.message || err)
+    res.status(500).json({ error: 'Could not load the wedding info.' })
+  }
 })
 
 app.post('/api/chat', async (req, res) => {

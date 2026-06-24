@@ -1,7 +1,16 @@
 import { useState, useEffect } from 'react'
 import { useStore, guestStats } from './lib/store.js'
-import { getSharedDetails } from './lib/share.js'
+import { getSharedToken, getSharedDetails } from './lib/share.js'
 import { enableNotifications, showNotification } from './lib/notify.js'
+import { supabaseEnabled } from './lib/supabase.js'
+import { useSession, signOut } from './lib/auth.js'
+import Chat from './components/Chat.jsx'
+import GuestList from './components/GuestList.jsx'
+import Details from './components/Details.jsx'
+import Budget from './components/Budget.jsx'
+import Calendar from './components/Calendar.jsx'
+import Share from './components/Share.jsx'
+import Login from './components/Login.jsx'
 
 function prettyDate(str) {
   if (!str) return ''
@@ -9,12 +18,6 @@ function prettyDate(str) {
   if (!y || !m || !d) return ''
   return new Date(y, m - 1, d).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
 }
-import Chat from './components/Chat.jsx'
-import GuestList from './components/GuestList.jsx'
-import Details from './components/Details.jsx'
-import Budget from './components/Budget.jsx'
-import Calendar from './components/Calendar.jsx'
-import Share from './components/Share.jsx'
 
 const TABS = [
   { id: 'chat', label: '💬 Hey Girl' },
@@ -26,21 +29,59 @@ const TABS = [
   { id: 'guestmode', label: '👀 Guest View' },
 ]
 
-// If opened via a shared guest link, render a standalone guest-only experience.
-function GuestApp({ details }) {
+function Splash({ text = 'Loading…' }) {
+  return (
+    <div className="app">
+      <div className="splash">
+        <div className="splash-logo">Hey&nbsp;Girl!</div>
+        <div className="splash-text">{text}</div>
+      </div>
+    </div>
+  )
+}
+
+// Top-level router: guest links bypass auth entirely.
+export default function App() {
+  const token = getSharedToken()
+  const legacy = getSharedDetails()
+  if (token) return <GuestApp token={token} />
+  if (legacy) return <GuestApp initialDetails={legacy} />
+  return <CoupleApp />
+}
+
+// Standalone, login-free guest experience. With a token it fetches the public
+// details from the server; legacy links pass details in directly.
+function GuestApp({ token, initialDetails }) {
+  const [details, setDetails] = useState(initialDetails || null)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    if (initialDetails || !token) return
+    let cancel = false
+    fetch(`/api/guest/${encodeURIComponent(token)}`)
+      .then((r) => (r.ok ? r.json() : r.json().then((e) => Promise.reject(e))))
+      .then((d) => !cancel && setDetails(d.details || {}))
+      .catch((e) => !cancel && setError(e?.error || 'This guest link is invalid or has expired.'))
+    return () => { cancel = true }
+  }, [token, initialDetails])
+
+  if (error) return <Splash text={error} />
+  if (!details) return <Splash text="Loading the wedding details…" />
+
+  const name = details.coupleNames || 'the'
   return (
     <div className="app">
       <header className="topbar">
         <div className="brand">
           <span className="logo">Hey&nbsp;Girl!</span>
-          <span className="tagline">{details.coupleNames}'s wedding</span>
+          <span className="tagline">{name}'s wedding</span>
         </div>
       </header>
       <main className="content">
         <Chat
           mode="guest"
           details={details}
-          intro={`Hi! I'm Hey Girl 💕 Ask me anything about ${details.coupleNames}'s wedding — date, venue, dress code, parking, you name it.`}
+          intro={`Hi! I'm Hey Girl 💕 Ask me anything about ${name}'s wedding — date, venue, dress code, parking, you name it.`}
           suggestions={['When and where is it?', "What's the dress code?", 'Is there a hotel block?']}
         />
       </main>
@@ -48,17 +89,14 @@ function GuestApp({ details }) {
   )
 }
 
-export default function App() {
-  const shared = getSharedDetails()
-  if (shared) return <GuestApp details={shared} />
-
-  const store = useStore()
+function CoupleApp() {
+  const { session, ready } = useSession()
+  const store = useStore(session)
   const [tab, setTab] = useState('chat')
-  const stats = guestStats(store.guests)
 
   // When notifications are on, remind about budget balances due within 3 days.
   useEffect(() => {
-    if (!store.settings.notifyTimeline) return
+    if (!store.settings?.notifyTimeline) return
     if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return
     const now = new Date()
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
@@ -78,7 +116,7 @@ export default function App() {
         store.markDueNotified(key)
       }
     }
-  }, [store.settings.notifyTimeline, store.budget, store.settings.notifiedDue])
+  }, [store.settings?.notifyTimeline, store.budget, store.settings?.notifiedDue])
 
   async function handleToggleNotify(wantOn) {
     if (wantOn) {
@@ -92,6 +130,12 @@ export default function App() {
     }
   }
 
+  if (!ready) return <Splash />
+  if (supabaseEnabled && !session) return <Login />
+  if (store.loading) return <Splash text="Loading your wedding…" />
+
+  const stats = guestStats(store.guests)
+
   return (
     <div className="app">
       <header className="topbar">
@@ -102,7 +146,12 @@ export default function App() {
             {store.details.date ? ` · ${prettyDate(store.details.date)}` : ''}
           </span>
         </div>
-        <a className="back-link" href="/">← back to site</a>
+        <div className="topbar-actions">
+          <a className="back-link" href="/">← site</a>
+          {supabaseEnabled && session && (
+            <button className="back-link" onClick={() => signOut()}>Sign out</button>
+          )}
+        </div>
       </header>
 
       <main className="content">
@@ -159,7 +208,7 @@ export default function App() {
 
         {tab === 'details' && <Details details={store.details} setDetails={store.setDetails} />}
 
-        {tab === 'share' && <Share details={store.details} />}
+        {tab === 'share' && <Share details={store.details} shareToken={store.shareToken} />}
 
         {tab === 'guestmode' && (
           <div className="guestmode-wrap">

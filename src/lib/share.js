@@ -23,13 +23,31 @@ function b64decode(str) {
   return decodeURIComponent(escape(atob(s)))
 }
 
-export function buildGuestLink(details) {
-  const payload = b64encode(JSON.stringify(pickPublic(details)))
-  const base = `${location.origin}${location.pathname}`
-  return `${base}?guest=1#w=${payload}`
+// Preferred (Supabase) link: an opaque share token. The guest's browser fetches
+// the public details from the server, so nothing private is ever in the URL.
+export function buildGuestLink(token) {
+  const base = `${location.origin}/`
+  return `${base}?guest=1&w=${encodeURIComponent(token)}`
 }
 
-// If the current URL is a guest link, return the decoded public details, else null.
+// Local-only fallback (no Supabase): encode the public details into the URL hash.
+export function buildLocalGuestLink(details) {
+  const payload = b64encode(JSON.stringify(pickPublic(details)))
+  return `${location.origin}/?guest=1#w=${payload}`
+}
+
+// Read a share TOKEN from a guest link (?guest=1&w=token). Returns null if absent.
+export function getSharedToken() {
+  try {
+    const params = new URLSearchParams(location.search)
+    if (params.get('guest') !== '1') return null
+    return params.get('w') || null
+  } catch {
+    return null
+  }
+}
+
+// Legacy: decode public details embedded in the URL hash (local fallback links).
 export function getSharedDetails() {
   try {
     const params = new URLSearchParams(location.search)
@@ -37,8 +55,7 @@ export function getSharedDetails() {
     const hash = new URLSearchParams(location.hash.replace(/^#/, ''))
     const w = hash.get('w')
     if (!w) return null
-    const parsed = JSON.parse(b64decode(w))
-    return pickPublic(parsed)
+    return pickPublic(JSON.parse(b64decode(w)))
   } catch {
     return null
   }

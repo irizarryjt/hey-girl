@@ -1,5 +1,6 @@
-// Tiny localStorage-backed store. Swap for an API/db in v2.
-import { useEffect, useState } from 'react'
+// Store backed by Supabase (per-user) when configured, else localStorage.
+import { useEffect, useRef, useState } from 'react'
+import { supabase, supabaseEnabled } from './supabase.js'
 
 const KEY = 'heygirl.v1'
 
@@ -84,32 +85,103 @@ function migrateBudget(budget) {
   return { ...budget, items }
 }
 
-function load() {
-  try {
-    const raw = localStorage.getItem(KEY)
-    if (raw) {
-      const parsed = JSON.parse(raw)
-      // backfill / migrate for users upgrading from an earlier save
-      parsed.details = migrateDetails(parsed.details)
-      parsed.budget = migrateBudget(parsed.budget)
-      if (!Array.isArray(parsed.events)) parsed.events = seedEvents
-      parsed.settings = { ...defaultSettings, ...(parsed.settings || {}) }
-      return parsed
-    }
-  } catch {}
+function freshState() {
   return { details: defaultDetails, guests: seedGuests, budget: defaultBudget, events: seedEvents, settings: defaultSettings }
 }
 
-function save(state) {
+// Normalize/migrate any saved blob (from localStorage or Supabase) into current shape.
+function migrateAll(data) {
+  const d = data && typeof data === 'object' ? data : {}
+  return {
+    details: migrateDetails(d.details || defaultDetails),
+    guests: Array.isArray(d.guests) ? d.guests : seedGuests,
+    budget: migrateBudget(d.budget || defaultBudget),
+    events: Array.isArray(d.events) ? d.events : seedEvents,
+    settings: { ...defaultSettings, ...(d.settings || {}) },
+  }
+}
+
+function localLoad() {
+  try {
+    const raw = localStorage.getItem(KEY)
+    if (raw) return migrateAll(JSON.parse(raw))
+  } catch {}
+  return freshState()
+}
+
+function localSave(state) {
   try {
     localStorage.setItem(KEY, JSON.stringify(state))
   } catch {}
 }
 
-export function useStore() {
-  const [state, setState] = useState(load)
+export function useStore(session) {
+  const [state, setState] = useState(() => (supabaseEnabled ? freshState() : localLoad()))
+  const [loading, setLoading] = useState(supabaseEnabled)
+  const [shareToken, setShareToken] = useState(null)
+  const hydrated = useRef(!supabaseEnabled)
+  const rowId = useRef(null)
 
-  useEffect(() => save(state), [state])
+  // Supabase: load (or create) this user's wedding row when they sign in.
+  useEffect(() => {
+    if (!supabaseEnabled) return
+    if (!session) {
+      hydrated.current = false
+      rowId.current = null
+      setShareToken(null)
+      setLoading(false)
+      return
+    }
+    let cancel = false
+    ;(async () => {
+      setLoading(true)
+      const { data } = await supabase
+        .from('weddings')
+        .select('id, data, share_token')
+        .eq('user_id', session.user.id)
+        .maybeSingle()
+      if (cancel) return
+      if (data) {
+        rowId.current = data.id
+        setShareToken(data.share_token)
+        setState(migrateAll(data.data))
+      } else {
+        const seed = freshState()
+        const { data: created } = await supabase
+          .from('weddings')
+          .insert({ user_id: session.user.id, data: seed })
+          .select('id, data, share_token')
+          .single()
+        if (created) {
+          rowId.current = created.id
+          setShareToken(created.share_token)
+          setState(migrateAll(created.data))
+        }
+      }
+      hydrated.current = true
+      setLoading(false)
+    })()
+    return () => {
+      cancel = true
+    }
+  }, [session])
+
+  // Persist changes: debounced upsert to Supabase, or straight to localStorage.
+  useEffect(() => {
+    if (!hydrated.current) return
+    if (supabaseEnabled) {
+      if (!rowId.current) return
+      const t = setTimeout(() => {
+        supabase
+          .from('weddings')
+          .update({ data: state, updated_at: new Date().toISOString() })
+          .eq('id', rowId.current)
+          .then(() => {}, () => {})
+      }, 700)
+      return () => clearTimeout(t)
+    }
+    localSave(state)
+  }, [state])
 
   const setDetails = (details) => setState((s) => ({ ...s, details }))
 
@@ -173,6 +245,8 @@ export function useStore() {
 
   return {
     ...state,
+    loading,
+    shareToken,
     setDetails,
     addGuest,
     updateGuest,
