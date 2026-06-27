@@ -24,6 +24,11 @@ create policy "owner can insert" on public.weddings for insert with check (auth.
 create policy "owner can update" on public.weddings for update using (auth.uid() = user_id);
 create policy "owner can delete" on public.weddings for delete using (auth.uid() = user_id);
 
+-- Table-level grants for logged-in users (RLS above still limits them to their own row).
+-- Supabase usually adds these automatically; included here so a manual re-run is complete.
+grant usage on schema public to anon, authenticated;
+grant select, insert, update, delete on table public.weddings to authenticated;
+
 -- NOTE: there is intentionally NO public/guest SELECT policy. Guests never read
 -- this table directly. The server fetches a wedding by its share_token using the
 -- service-role key and returns ONLY a whitelisted public subset (date, venue,
