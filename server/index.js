@@ -11,9 +11,15 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const DIST_DIR = path.resolve(__dirname, '..', 'dist')
 
 const PORT = process.env.PORT || 8787
-const MODEL = process.env.CLAUDE_MODEL || 'claude-sonnet-4-6'
-// Used automatically when the primary model is overloaded (529).
-const FALLBACK_MODEL = process.env.FALLBACK_MODEL || 'claude-haiku-4-5-20251001'
+const MODEL = process.env.CLAUDE_MODEL || 'claude-opus-4-8'
+// Ordered fallback chain, tried in turn when a model is overloaded (529/503).
+// Override with a comma-separated FALLBACK_MODELS list; FALLBACK_MODEL (legacy,
+// single value) still works. Default: Opus → Sonnet → Haiku.
+const FALLBACK_MODELS = (process.env.FALLBACK_MODELS || process.env.FALLBACK_MODEL ||
+  'claude-sonnet-4-6,claude-haiku-4-5-20251001')
+  .split(',').map((m) => m.trim()).filter(Boolean)
+// Full chain (primary first), de-duped.
+const MODEL_CHAIN = [MODEL, ...FALLBACK_MODELS].filter((m, i, a) => a.indexOf(m) === i)
 
 const app = express()
 app.use(cors())
@@ -217,18 +223,22 @@ app.post('/api/chat', async (req, res) => {
       .filter((m) => m && (m.role === 'user' || m.role === 'assistant') && m.content)
       .map((m) => ({ role: m.role, content: String(m.content) }))
 
-    // Try the primary model; if it's overloaded (529/503), fall back to an
-    // alternate model in a different capacity pool so the couple still gets a reply.
+    // Try each model in the chain; if one is overloaded (529/503), fall through
+    // to the next so the couple still gets a reply. Any other error stops here.
     let resp
-    try {
-      resp = await client.messages.create({ model: MODEL, max_tokens: 1024, system, messages: cleaned })
-    } catch (primaryErr) {
-      const s = primaryErr?.status || primaryErr?.statusCode
-      if ((s === 529 || s === 503) && FALLBACK_MODEL && FALLBACK_MODEL !== MODEL) {
-        console.warn(`Primary model ${MODEL} overloaded (${s}); falling back to ${FALLBACK_MODEL}.`)
-        resp = await client.messages.create({ model: FALLBACK_MODEL, max_tokens: 1024, system, messages: cleaned })
-      } else {
-        throw primaryErr
+    for (let i = 0; i < MODEL_CHAIN.length; i++) {
+      const model = MODEL_CHAIN[i]
+      try {
+        resp = await client.messages.create({ model, max_tokens: 1024, system, messages: cleaned })
+        break
+      } catch (err) {
+        const s = err?.status || err?.statusCode
+        const hasNext = i < MODEL_CHAIN.length - 1
+        if ((s === 529 || s === 503) && hasNext) {
+          console.warn(`Model ${model} overloaded (${s}); falling back to ${MODEL_CHAIN[i + 1]}.`)
+          continue
+        }
+        throw err
       }
     }
 
