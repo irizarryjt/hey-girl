@@ -135,23 +135,27 @@ export function useStore(session) {
     let cancel = false
     ;(async () => {
       setLoading(true)
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('weddings')
         .select('id, data, share_token')
         .eq('user_id', session.user.id)
         .maybeSingle()
       if (cancel) return
+      if (error) console.error('[store] load/select error:', error.message || error)
       if (data) {
+        console.log('[store] loaded existing wedding row', data.id)
         rowId.current = data.id
         setShareToken(data.share_token)
         setState(migrateAll(data.data))
       } else {
+        console.log('[store] no row found — creating one')
         const seed = freshState()
-        const { data: created } = await supabase
+        const { data: created, error: insErr } = await supabase
           .from('weddings')
           .insert({ user_id: session.user.id, data: seed })
           .select('id, data, share_token')
           .single()
+        if (insErr) console.error('[store] insert error:', insErr.message || insErr)
         if (created) {
           rowId.current = created.id
           setShareToken(created.share_token)
@@ -171,12 +175,13 @@ export function useStore(session) {
     if (!hydrated.current) return
     if (supabaseEnabled) {
       if (!rowId.current) return
-      const t = setTimeout(() => {
-        supabase
+      const t = setTimeout(async () => {
+        const { error } = await supabase
           .from('weddings')
           .update({ data: state, updated_at: new Date().toISOString() })
           .eq('id', rowId.current)
-          .then(() => {}, () => {})
+        if (error) console.error('[store] save error:', error.message || error)
+        else console.log('[store] saved')
       }, 700)
       return () => clearTimeout(t)
     }
