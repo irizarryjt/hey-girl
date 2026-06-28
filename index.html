@@ -69,8 +69,7 @@
       radial-gradient(60% 55% at 78% 12%, rgba(201, 163, 106, 0.16), transparent 60%),
       radial-gradient(70% 60% at 12% 8%, rgba(181, 131, 141, 0.18), transparent 60%);
   }
-  .hero .wrap { position: relative; z-index: 1; display: grid; grid-template-columns: 1fr; gap: 48px; align-items: start; justify-items: center; text-align: center; }
-  .hero .wrap > div { max-width: 640px; }
+  .hero .wrap { position: relative; z-index: 1; display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 48px; align-items: start; }
   .eyebrow {
     display: inline-flex; align-items: center; gap: 8px;
     background: var(--rose-deep); color: #fff;
@@ -84,9 +83,9 @@
   .sd-names { font-family: 'Fraunces', serif; font-style: italic; font-size: 16px; color: var(--muted); margin-top: 4px; }
   .hero h1 { font-size: clamp(40px, 5.6vw, 64px); line-height: 1.04; font-weight: 500; letter-spacing: -0.5px; }
   .hero h1 em { font-style: italic; color: var(--rose); }
-  .hero p.lede { margin: 22px auto 0; font-size: 19px; color: var(--muted); max-width: 36ch; }
-  .hero-cta { margin-top: 32px; display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
-  .trust { margin-top: 26px; font-size: 14px; color: var(--muted); display: flex; align-items: center; gap: 10px; justify-content: center; }
+  .hero p.lede { margin-top: 22px; font-size: 19px; color: var(--muted); max-width: 36ch; }
+  .hero-cta { margin-top: 32px; display: flex; gap: 14px; flex-wrap: wrap; }
+  .trust { margin-top: 26px; font-size: 14px; color: var(--muted); display: flex; align-items: center; gap: 10px; }
   .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--gold); }
 
   /* phone mockup */
@@ -117,7 +116,10 @@
   .phone-input { margin: 0 14px 16px; background: #fff; border: 1px solid var(--line); border-radius: 999px; padding: 10px 14px; font-size: 13px; color: var(--muted); display: flex; justify-content: space-between; align-items: center; }
   .phone-input span:last-child { color: var(--rose); font-weight: 600; }
   @media (max-width: 880px) {
-    .hero .wrap { grid-template-columns: 1fr; text-align: center; }
+    .hero .wrap { grid-template-columns: 1fr; text-align: center; justify-items: center; }
+    .hero .wrap > div { max-width: 640px; }
+    .hero p.lede { margin-left: auto; margin-right: auto; }
+    .hero-cta, .trust { justify-content: center; }
   }
 
   /* ---- Byline band ---- */
