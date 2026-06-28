@@ -72,14 +72,19 @@ export default function Chat({
   notifyEnabled = false,
   onToggleNotify,
 }) {
-  const [messages, setMessages] = useState([{ role: 'assistant', content: intro, events: [], budgetItems: [] }])
+  // Start with the intro bubble only when an intro is provided; otherwise the
+  // chat opens empty (used after first login, where the welcome lives in FAQ).
+  const [messages, setMessages] = useState(
+    intro ? [{ role: 'assistant', content: intro, events: [], budgetItems: [] }] : []
+  )
   const [input, setInput] = useState('')
   const [busy, setBusy] = useState(false)
   const [added, setAdded] = useState({})
   const [offerOpen, setOfferOpen] = useState(true)
   const scrollRef = useRef(null)
   const fileRef = useRef(null)
-  const started = messages.length > 1
+  // "Started" = the couple has sent at least one message (works with or without intro).
+  const started = messages.some((m) => m.role === 'user')
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' })
@@ -197,7 +202,7 @@ export default function Chat({
         {busy && <div className="bubble assistant typing"><span/><span/><span/></div>}
       </div>
 
-      {suggestions.length > 0 && messages.length <= 1 && (
+      {suggestions.length > 0 && !started && (
         <div className="chips">
           {suggestions.map((s) => (
             <button key={s} className="chip" onClick={() => send(s)} disabled={busy}>{s}</button>
@@ -205,7 +210,7 @@ export default function Chat({
         </div>
       )}
 
-      {mode !== 'guest' && messages.length <= 1 && (
+      {mode !== 'guest' && !started && (
         <div className="attach-hint">
           Tip: tap <span className="plus-pill">+</span> to attach a quote, contract, or invoice (PDF or Word) — I'll pull out the costs, due dates, and options.
         </div>

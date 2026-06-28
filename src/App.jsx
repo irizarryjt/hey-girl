@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useStore, guestStats } from './lib/store.js'
 import { getSharedToken, getSharedDetails } from './lib/share.js'
 import { enableNotifications, showNotification } from './lib/notify.js'
@@ -10,6 +10,7 @@ import Details from './components/Details.jsx'
 import Budget from './components/Budget.jsx'
 import Calendar from './components/Calendar.jsx'
 import Share from './components/Share.jsx'
+import Faq from './components/Faq.jsx'
 import Login from './components/Login.jsx'
 
 function prettyDate(str) {
@@ -19,6 +20,10 @@ function prettyDate(str) {
   return new Date(y, m - 1, d).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
 }
 
+// Shown once in the chat on first login, then it lives permanently in the FAQ tab.
+const COUPLE_INTRO =
+  "Congratulations on your engagement! I'm your wedding planning bestie. Ask me about your timeline, budget, etiquette, or anything wedding related. Heads up: everything's filled in with placeholder details right now — a sample couple, budget, guests, and dates — just so you can see how it all works. Update anything in the tabs to make it yours."
+
 const TABS = [
   { id: 'chat', label: '💬 Hey Girl' },
   { id: 'calendar', label: '📅 Calendar' },
@@ -27,6 +32,7 @@ const TABS = [
   { id: 'details', label: '📋 Shared Details' },
   { id: 'share', label: '🔗 Share' },
   { id: 'guestmode', label: '👀 Guest View' },
+  { id: 'faq', label: '❓ FAQ' },
 ]
 
 function Splash({ text = 'Loading…' }) {
@@ -93,6 +99,9 @@ function CoupleApp() {
   const { session, ready } = useSession()
   const store = useStore(session)
   const [tab, setTab] = useState('chat')
+  // Decide once per session whether to show the welcome bubble, then remember it
+  // as seen so it never shows again. The full welcome lives in the FAQ tab.
+  const showIntroRef = useRef(undefined)
 
   // When notifications are on, remind about budget balances due within 3 days.
   useEffect(() => {
@@ -118,6 +127,13 @@ function CoupleApp() {
     }
   }, [store.settings?.notifyTimeline, store.budget, store.settings?.notifiedDue])
 
+  // Once the welcome has been shown for this first session, persist that it's seen.
+  useEffect(() => {
+    if (showIntroRef.current && store.settings && !store.settings.seenIntro) {
+      store.setSeenIntro(true)
+    }
+  }, [store.loading, store.settings?.seenIntro])
+
   async function handleToggleNotify(wantOn) {
     if (wantOn) {
       const { ok, reason } = await enableNotifications()
@@ -133,6 +149,10 @@ function CoupleApp() {
   if (!ready) return <Splash />
   if (supabaseEnabled && !session) return <Login />
   if (store.loading) return <Splash text="Loading your wedding…" />
+
+  // Lazily decide (once) whether this session shows the welcome bubble.
+  if (showIntroRef.current === undefined) showIntroRef.current = !store.settings?.seenIntro
+  const showIntro = showIntroRef.current
 
   const stats = guestStats(store.guests)
 
@@ -167,7 +187,7 @@ function CoupleApp() {
             timelineOffer
             notifyEnabled={store.settings.notifyTimeline}
             onToggleNotify={handleToggleNotify}
-            intro="Congratulations on your engagement! I'm your wedding planning bestie. Ask me about your timeline, budget, etiquette, or anything wedding related. Heads up: everything's filled in with placeholder details right now — a sample couple, budget, guests, and dates — just so you can see how it all works. Update anything in the tabs to make it yours."
+            intro={showIntro ? COUPLE_INTRO : ''}
             suggestions={[
               "What's left in the flowers budget?",
               'When should I send save-the-dates?',
@@ -209,6 +229,8 @@ function CoupleApp() {
         {tab === 'details' && <Details details={store.details} setDetails={store.setDetails} />}
 
         {tab === 'share' && <Share details={store.details} shareToken={store.shareToken} />}
+
+        {tab === 'faq' && <Faq intro={COUPLE_INTRO} />}
 
         {tab === 'guestmode' && (
           <div className="guestmode-wrap">
