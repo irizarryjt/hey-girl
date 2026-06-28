@@ -3,15 +3,18 @@ import { askHeyGirl } from '../lib/api.js'
 import { showNotification } from '../lib/notify.js'
 import { extractFileText } from '../lib/extract.js'
 import { icsForEvents, downloadICS, eventFilename } from '../lib/ics.js'
+import { guestRsvp } from '../lib/api.js'
 
 // Hey Girl may append fenced blocks of structured suggestions:
 //   ```heygirl:events  [{"date":"2026-08-01","title":"Book florist"}]  ```
 //   ```heygirl:budget  [{"category":"Catering","estimated":9000,...}]  ```
 //   ```heygirl:invite  add  ```  (guest mode — show a calendar download button)
+//   ```heygirl:rsvp   {"attending":"yes",...}  ```  (guest mode — RSVP card)
 // We pull those out, hide the raw blocks, and render one-tap buttons.
 const EVENTS_RE = /```heygirl:events\s*([\s\S]*?)```/i
 const BUDGET_RE = /```heygirl:budget\s*([\s\S]*?)```/i
 const INVITE_RE = /```heygirl:invite[\s\S]*?```/i
+const RSVP_RE = /```heygirl:rsvp\s*([\s\S]*?)```/i
 
 function parseBlock(text, re, map) {
   const match = text.match(re)
@@ -43,7 +46,26 @@ function parseReply(text) {
   clean = bd.clean
   const invite = INVITE_RE.test(clean)
   if (invite) clean = clean.replace(INVITE_RE, '')
-  return { clean: clean.trim(), events: ev.items, budgetItems: bd.items, invite }
+  let rsvp = null
+  const rm = clean.match(RSVP_RE)
+  if (rm) {
+    try { rsvp = JSON.parse(rm[1].trim()) } catch {}
+    clean = clean.replace(RSVP_RE, '')
+  }
+  return { clean: clean.trim(), events: ev.items, budgetItems: bd.items, invite, rsvp }
+}
+
+// Normalize a parsed RSVP block into the editable card's fields.
+function normalizeRsvp(r = {}) {
+  return {
+    attending: String(r.attending || '').toLowerCase() === 'no' ? 'no' : 'yes',
+    partySize: Math.max(1, Number(r.partySize) || 1),
+    meal: r.meal || '',
+    dietary: r.dietary || '',
+    email: r.email || '',
+    phone: r.phone || '',
+    notes: r.notes || '',
+  }
 }
 
 // Build the wedding-day event (for a guest's calendar download) from public details.
@@ -87,6 +109,10 @@ export default function Chat({
   timelineOffer = false,
   notifyEnabled = false,
   onToggleNotify,
+  guestToken = null,
+  guestIdentity = null,
+  guestContext = null,
+  onRsvpSubmitted,
 }) {
   // The welcome stays as the first message at the very top of the thread (like a
   // text conversation); it scrolls up out of view as the chat grows. The full
@@ -97,6 +123,7 @@ export default function Chat({
   const [input, setInput] = useState('')
   const [busy, setBusy] = useState(false)
   const [added, setAdded] = useState({})
+  const [rsvpDrafts, setRsvpDrafts] = useState({})
   const [offerOpen, setOfferOpen] = useState(true)
   const scrollRef = useRef(null)
   const fileRef = useRef(null)
@@ -119,9 +146,9 @@ export default function Chat({
       const history = next
         .filter((m, i) => !(i === 0 && m.role === 'assistant'))
         .map((m) => ({ role: m.role, content: m.content }))
-      const { reply } = await askHeyGirl({ mode, messages: history, details, guestStats: stats, budget, events })
-      const { clean, events: suggested, budgetItems, invite } = parseReply(reply)
-      setMessages((m) => [...m, { role: 'assistant', content: clean, events: suggested, budgetItems, invite }])
+      const { reply } = await askHeyGirl({ mode, messages: history, details, guestStats: stats, budget, events, guestContext })
+      const { clean, events: suggested, budgetItems, invite, rsvp } = parseReply(reply)
+      setMessages((m) => [...m, { role: 'assistant', content: clean, events: suggested, budgetItems, invite, rsvp }])
       if (notifyEnabled && suggested.length > 0) {
         const titles = suggested.map((e) => e.title).slice(0, 3).join(', ')
         showNotification('Hey Girl mapped out your timeline 💍', `${suggested.length} date${suggested.length > 1 ? 's' : ''} to add: ${titles}`)
@@ -156,6 +183,25 @@ export default function Chat({
   function add(key, fn, payload) {
     fn?.(payload)
     setAdded((a) => ({ ...a, [key]: true }))
+  }
+
+  async function submitRsvp(i, draft) {
+    if (busy || !guestToken || !guestIdentity) return
+    setBusy(true)
+    try {
+      const { guest } = await guestRsvp(guestToken, guestIdentity.name, guestIdentity.password, draft)
+      setAdded((a) => ({ ...a, [`rsvp${i}`]: true }))
+      const status = guest.rsvp === 'yes' ? `attending (party of ${guest.partySize})` : guest.rsvp === 'no' ? 'unable to attend' : 'recorded'
+      setMessages((m) => [
+        ...m,
+        { role: 'assistant', content: `✓ All set, ${guest.name}! Your RSVP is saved — you're down as ${status}. Come back anytime with your password to make changes. 💕`, events: [], budgetItems: [] },
+      ])
+      onRsvpSubmitted?.(guest)
+    } catch (e) {
+      setMessages((m) => [...m, { role: 'assistant', content: `Oof — ${e.message}`, events: [], budgetItems: [] }])
+    } finally {
+      setBusy(false)
+    }
   }
 
   const money = (n) => `$${Math.round(Number(n) || 0).toLocaleString('en-US')}`
@@ -207,6 +253,45 @@ export default function Chat({
                   </button>
                 </div>
               )}
+              {m.rsvp && guestToken && guestIdentity && (() => {
+                const draft = rsvpDrafts[i] || normalizeRsvp(m.rsvp)
+                const set = (patch) => setRsvpDrafts((d) => ({ ...d, [i]: { ...draft, ...patch } }))
+                const done = added[`rsvp${i}`]
+                return (
+                  <div className="rsvp-card">
+                    <div className="rsvp-title">Review your RSVP</div>
+                    <div className="rsvp-row">
+                      <span>Attending?</span>
+                      <div className="yn">
+                        <button type="button" className={`yn-btn ${draft.attending === 'yes' ? 'on' : ''}`} disabled={done} onClick={() => set({ attending: 'yes' })}>Yes</button>
+                        <button type="button" className={`yn-btn ${draft.attending === 'no' ? 'on' : ''}`} disabled={done} onClick={() => set({ attending: 'no' })}>No</button>
+                      </div>
+                    </div>
+                    {draft.attending === 'yes' && (
+                      <>
+                        <label className="rsvp-field"><span>Party size (incl. you)</span>
+                          <input type="number" min="1" value={draft.partySize} disabled={done} onChange={(e) => set({ partySize: Math.max(1, Number(e.target.value) || 1) })} />
+                        </label>
+                        <label className="rsvp-field"><span>Meal preference</span>
+                          <input value={draft.meal} disabled={done} onChange={(e) => set({ meal: e.target.value })} placeholder="e.g. Chicken" />
+                        </label>
+                        <label className="rsvp-field"><span>Dietary needs</span>
+                          <input value={draft.dietary} disabled={done} onChange={(e) => set({ dietary: e.target.value })} placeholder="e.g. gluten-free" />
+                        </label>
+                      </>
+                    )}
+                    <label className="rsvp-field"><span>Email (optional)</span>
+                      <input value={draft.email} disabled={done} onChange={(e) => set({ email: e.target.value })} placeholder="email@example.com" />
+                    </label>
+                    <label className="rsvp-field"><span>Phone (optional)</span>
+                      <input value={draft.phone} disabled={done} onChange={(e) => set({ phone: e.target.value })} placeholder="(555) 123-4567" />
+                    </label>
+                    <button className="rsvp-submit" disabled={done || busy} onClick={() => submitRsvp(i, draft)}>
+                      {done ? '✓ RSVP submitted' : 'Submit RSVP'}
+                    </button>
+                  </div>
+                )
+              })()}
             </div>
           )
         })}

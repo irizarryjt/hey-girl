@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { buildGuestLink, buildLocalGuestLink } from '../lib/share.js'
 
-export default function Share({ details, shareToken }) {
+export default function Share({ details, shareToken, approxSize }) {
   const [copied, setCopied] = useState(false)
   // Token link when signed in (secure, nothing private in URL); else local fallback.
-  const link = shareToken ? buildGuestLink(shareToken) : buildLocalGuestLink(details)
+  const link = shareToken ? buildGuestLink(shareToken) : buildLocalGuestLink(details, approxSize)
 
   async function copy() {
     try {

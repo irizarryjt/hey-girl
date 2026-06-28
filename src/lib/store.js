@@ -152,6 +152,9 @@ function migrateGuest(g = {}) {
     party = Array.from({ length: Number(g.partySize) - 1 }, () => migrateMember())
   }
   return {
+    // Preserve guest-written fields the couple's UI doesn't manage (e.g. access
+    // password hash, selfReported, rsvpSubmittedAt) so saves don't wipe them.
+    ...g,
     id: g.id || crypto.randomUUID(),
     name: g.name || '',
     email: g.email || '', phone: g.phone || '', address: g.address || '',

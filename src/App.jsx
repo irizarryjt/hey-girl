@@ -13,6 +13,7 @@ import Share from './components/Share.jsx'
 import Registry from './components/Registry.jsx'
 import Faq from './components/Faq.jsx'
 import Login from './components/Login.jsx'
+import GuestGate from './components/GuestGate.jsx'
 
 function prettyDate(str) {
   if (!str) return ''
@@ -57,11 +58,31 @@ export default function App() {
   return <CoupleApp />
 }
 
+// Personalized opening line once a guest has identified themselves.
+function guestIntro(coupleName, identity) {
+  if (!identity) return `Hi! I'm Hey Girl 💕 Ask me anything about ${coupleName}'s wedding — date, venue, dress code, parking, you name it.`
+  const s = identity.summary || {}
+  const who = identity.name ? `, ${identity.name}` : ''
+  if (s.hasRsvp) {
+    const status = s.rsvp === 'yes' ? `attending with a party of ${s.partySize}` : s.rsvp === 'no' ? 'not able to make it' : 'recorded'
+    return `Hi${who}! 💕 You're already RSVP'd as ${status}. Want to edit your RSVP, or ask me anything about ${coupleName}'s wedding?`
+  }
+  return `Hi${who}! 💕 I don't have your RSVP yet — want to RSVP now? You can also ask me anything about ${coupleName}'s wedding.`
+}
+
+function guestSuggestions(identity) {
+  if (!identity) return ['When and where is it?', "What's the dress code?", 'Is there a hotel block?']
+  return identity.summary?.hasRsvp
+    ? ['Edit my RSVP', "What's the dress code?", 'Where are you registered?']
+    : ["I'd like to RSVP", 'When and where is it?', "What's the dress code?"]
+}
+
 // Standalone, login-free guest experience. With a token it fetches the public
 // details from the server; legacy links pass details in directly.
 function GuestApp({ token, initialDetails }) {
   const [details, setDetails] = useState(initialDetails || null)
   const [error, setError] = useState('')
+  const [identity, setIdentity] = useState(null) // { name, password, summary }
 
   useEffect(() => {
     if (initialDetails || !token) return
@@ -77,6 +98,9 @@ function GuestApp({ token, initialDetails }) {
   if (!details) return <Splash text="Loading the wedding details…" />
 
   const name = details.coupleNames || 'the'
+  // Token links require the guest to identify (name + password) before chatting.
+  const needsGate = !!token && !identity
+
   return (
     <div className="app">
       <header className="topbar">
@@ -86,12 +110,20 @@ function GuestApp({ token, initialDetails }) {
         </div>
       </header>
       <main className="content">
-        <Chat
-          mode="guest"
-          details={details}
-          intro={`Hi! I'm Hey Girl 💕 Ask me anything about ${name}'s wedding — date, venue, dress code, parking, you name it.`}
-          suggestions={['When and where is it?', "What's the dress code?", 'Is there a hotel block?']}
-        />
+        {needsGate ? (
+          <GuestGate token={token} coupleNames={name} onAccess={setIdentity} />
+        ) : (
+          <Chat
+            mode="guest"
+            details={details}
+            guestToken={token}
+            guestIdentity={identity}
+            guestContext={identity?.summary || null}
+            onRsvpSubmitted={(guest) => setIdentity((id) => (id ? { ...id, summary: guest } : id))}
+            intro={guestIntro(name, identity)}
+            suggestions={guestSuggestions(identity)}
+          />
+        )}
       </main>
     </div>
   )
@@ -225,7 +257,7 @@ function CoupleApp() {
 
         {tab === 'registry' && <Registry details={store.details} setDetails={store.setDetails} onAskHeyGirl={() => setTab('chat')} />}
 
-        {tab === 'share' && <Share details={store.details} shareToken={store.shareToken} />}
+        {tab === 'share' && <Share details={store.details} shareToken={store.shareToken} approxSize={stats.invited} />}
 
         {tab === 'faq' && <Faq intro={COUPLE_INTRO} />}
 

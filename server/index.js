@@ -4,6 +4,7 @@ import cors from 'cors'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import fs from 'node:fs'
+import crypto from 'node:crypto'
 import Anthropic from '@anthropic-ai/sdk'
 import { createClient } from '@supabase/supabase-js'
 
@@ -139,7 +140,7 @@ Only use real values found in the document — never invent prices or dates.
 If the couple asks something the data doesn't cover, say what you'd need to know and offer to help figure it out.`
 }
 
-function guestSystem(details) {
+function guestSystem(details, guestContext = null) {
   // Guests only ever see PUBLIC details. Never private notes/budget/full list.
   const publicDetails = {
     coupleNames: details.coupleNames,
@@ -168,7 +169,7 @@ Answer warmly and briefly using ONLY the published wedding details below.
 Rules:
 - Never reveal or speculate about budget, private planning notes, vendor pricing, or the full guest list.
 - If a guest asks about something not in the details, say you don't have that info yet and suggest they reach out to the couple directly.
-- Do not collect personal data or make promises on the couple's behalf.
+- Don't make promises on the couple's behalf. You may collect RSVP details (see RSVP below); don't ask for unrelated personal data.
 
 REGISTRY:
 - If hasRegistry is true and "registries" are listed, share them when a guest asks where the couple is registered; link each with Markdown using its name (or the URL if unnamed).
@@ -182,6 +183,20 @@ CALENDAR INVITE: When the guest asks about WHEN the wedding is (date or time) or
 add
 \`\`\`
 This signals the app to show the guest a "Add to your calendar" download button. Include the block only for date/time/location questions, and never if there is no date in the details. Write your friendly reply first, then the block.
+
+RSVP: You can help this guest RSVP or update an existing RSVP. When they want to, collect: whether they're attending (yes or no), how many people are in their party (including themselves), meal preference, any dietary needs, and optionally an email or phone for the couple. When you have what they'd like to submit, append a fenced code block at the very end in EXACTLY this format:
+\`\`\`heygirl:rsvp
+{"attending":"yes","partySize":2,"meal":"Chicken","dietary":"","email":"","phone":"","notes":""}
+\`\`\`
+Only include fields you actually have; use "attending":"yes" or "no". The app shows the guest a confirmation card to review and submit, so do NOT claim the RSVP is saved — instead invite them to review and tap submit. Write your friendly reply first, then the block.${
+    guestContext
+      ? `\n\nABOUT THIS GUEST (already identified): ${JSON.stringify(guestContext)}. ${
+          guestContext.hasRsvp
+            ? "They have already RSVP'd — acknowledge their current response and ask if they'd like to edit it."
+            : "They haven't RSVP'd yet — warmly offer to help them RSVP."
+        }`
+      : ''
+  }
 
 Published wedding details:
 ${JSON.stringify(publicDetails, null, 2)}`
@@ -252,9 +267,138 @@ app.get('/api/guest/:token', async (req, res) => {
   }
 })
 
+// ---- Guest RSVP (open, name-matched, protected by a guest-chosen password) ----
+
+function hashPassword(password) {
+  const salt = crypto.randomBytes(16).toString('hex')
+  const hash = crypto.scryptSync(String(password), salt, 64).toString('hex')
+  return { salt, hash }
+}
+function verifyPassword(password, access) {
+  if (!access || !access.salt || !access.hash) return false
+  const hash = crypto.scryptSync(String(password), access.salt, 64).toString('hex')
+  const a = Buffer.from(hash, 'hex')
+  const b = Buffer.from(access.hash, 'hex')
+  return a.length === b.length && crypto.timingSafeEqual(a, b)
+}
+
+function newMemberRecord() {
+  return { id: crypto.randomUUID(), name: '', email: '', phone: '', address: '', useForMailing: false, isChild: false, meal: '', dietary: '' }
+}
+function newGuestRecord(name) {
+  return {
+    id: crypto.randomUUID(), name, email: '', phone: '', address: '', useForMailing: true,
+    rsvp: 'pending', meal: '', dietary: '', isChild: false, side: '', relationship: '', table: '',
+    outOfTown: false, invitedTo: { ceremony: true, reception: true, rehearsal: false, welcome: false, brunch: false },
+    saveTheDateSent: false, invitationSent: false, thankYouSent: false, giftReceived: false, gift: '',
+    notes: '', party: [], selfReported: true,
+  }
+}
+
+// Summary safe to return to a guest about their own record (never the password hash).
+function guestSummary(g) {
+  return {
+    name: g.name || '',
+    rsvp: g.rsvp || 'pending',
+    partySize: 1 + (Array.isArray(g.party) ? g.party.length : 0),
+    meal: g.meal || '',
+    dietary: g.dietary || '',
+    hasRsvp: (g.rsvp && g.rsvp !== 'pending') || !!g.rsvpSubmittedAt,
+  }
+}
+
+function applyRsvp(g, rsvp = {}) {
+  const att = String(rsvp.attending || '').toLowerCase()
+  if (att === 'yes' || att === 'no' || att === 'pending') g.rsvp = att
+  if (rsvp.meal !== undefined) g.meal = String(rsvp.meal || '')
+  if (rsvp.dietary !== undefined) g.dietary = String(rsvp.dietary || '')
+  if (rsvp.email !== undefined) g.email = String(rsvp.email || '')
+  if (rsvp.phone !== undefined) g.phone = String(rsvp.phone || '')
+  if (rsvp.notes !== undefined) g.notes = String(rsvp.notes || '')
+  if (rsvp.partySize !== undefined) {
+    const extra = Math.max(0, (Number(rsvp.partySize) || 1) - 1)
+    const party = Array.isArray(g.party) ? g.party.slice(0, extra) : []
+    while (party.length < extra) party.push(newMemberRecord())
+    g.party = party
+  }
+  g.rsvpSubmittedAt = new Date().toISOString()
+}
+
+async function loadRowByToken(token) {
+  const { data, error } = await sbAdmin.from('weddings').select('id, data').eq('share_token', token).maybeSingle()
+  if (error) throw error
+  return data
+}
+function findGuestByName(guests, name) {
+  const key = String(name).trim().toLowerCase()
+  return (guests || []).find((g) => String(g.name || '').trim().toLowerCase() === key)
+}
+
+// Identify the guest (by name) and set or verify their chosen password.
+app.post('/api/guest/:token/access', async (req, res) => {
+  if (!sbAdmin) return res.status(503).json({ error: 'Guest sharing isn’t set up yet.' })
+  try {
+    const name = String(req.body?.name || '').trim()
+    const password = String(req.body?.password || '')
+    if (!name || password.length < 4) return res.status(400).json({ error: 'Please enter your name and a password of at least 4 characters.' })
+
+    const row = await loadRowByToken(req.params.token)
+    if (!row) return res.status(404).json({ error: 'This guest link is invalid or has expired.' })
+    const data = row.data || {}
+    const guests = Array.isArray(data.guests) ? data.guests : (data.guests = [])
+
+    let g = findGuestByName(guests, name)
+    let created = false
+    if (g && g.access?.hash) {
+      if (!verifyPassword(password, g.access)) {
+        return res.status(401).json({ error: "That password doesn't match the one on file for this name. If you've been here before, use the same password you chose." })
+      }
+    } else if (g && !g.access) {
+      g.access = hashPassword(password) // first time: claim an invited record
+      await sbAdmin.from('weddings').update({ data, updated_at: new Date().toISOString() }).eq('id', row.id)
+    } else {
+      g = newGuestRecord(name)
+      g.access = hashPassword(password)
+      guests.push(g)
+      created = true
+      await sbAdmin.from('weddings').update({ data, updated_at: new Date().toISOString() }).eq('id', row.id)
+    }
+    res.json({ ok: true, created, guest: guestSummary(g) })
+  } catch (err) {
+    console.error('Guest access error:', err?.message || err)
+    res.status(500).json({ error: 'Could not sign you in. Please try again.' })
+  }
+})
+
+// Submit or edit an RSVP (re-verifies the guest's password).
+app.post('/api/guest/:token/rsvp', async (req, res) => {
+  if (!sbAdmin) return res.status(503).json({ error: 'Guest sharing isn’t set up yet.' })
+  try {
+    const name = String(req.body?.name || '').trim()
+    const password = String(req.body?.password || '')
+    const rsvp = req.body?.rsvp || {}
+    if (!name || !password) return res.status(400).json({ error: 'Missing name or password.' })
+
+    const row = await loadRowByToken(req.params.token)
+    if (!row) return res.status(404).json({ error: 'This guest link is invalid or has expired.' })
+    const data = row.data || {}
+    const guests = Array.isArray(data.guests) ? data.guests : []
+    const g = findGuestByName(guests, name)
+    if (!g || !verifyPassword(password, g.access)) {
+      return res.status(401).json({ error: 'We couldn’t verify your access. Please re-enter your name and password.' })
+    }
+    applyRsvp(g, rsvp)
+    await sbAdmin.from('weddings').update({ data, updated_at: new Date().toISOString() }).eq('id', row.id)
+    res.json({ ok: true, guest: guestSummary(g) })
+  } catch (err) {
+    console.error('Guest RSVP error:', err?.message || err)
+    res.status(500).json({ error: 'Could not save your RSVP. Please try again.' })
+  }
+})
+
 app.post('/api/chat', async (req, res) => {
   try {
-    const { mode = 'couple', messages = [], details = {}, guestStats = {}, budget = null, events = [] } = req.body || {}
+    const { mode = 'couple', messages = [], details = {}, guestStats = {}, budget = null, events = [], guestContext = null } = req.body || {}
 
     if (!client) {
       return res.status(200).json({
@@ -267,7 +411,7 @@ app.post('/api/chat', async (req, res) => {
     }
 
     // Budget is couple-only context; guest mode never receives it.
-    const system = mode === 'guest' ? guestSystem(details) : coupleSystem(details, guestStats, budget, events)
+    const system = mode === 'guest' ? guestSystem(details, guestContext) : coupleSystem(details, guestStats, budget, events)
 
     const cleaned = messages
       .filter((m) => m && (m.role === 'user' || m.role === 'assistant') && m.content)

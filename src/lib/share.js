@@ -4,12 +4,25 @@
 
 const PUBLIC_KEYS = [
   'coupleNames', 'date', 'time', 'venueName', 'venueAddress',
-  'dressCode', 'registryUrl', 'parking', 'hotelBlock', 'extraNotes',
+  'dressCode', 'parking', 'hotelBlock', 'extraNotes',
 ]
 
-function pickPublic(details = {}) {
+// Curate what a guest may see — registry + size only when the couple opted in.
+// Mirrors the server's publicGuestPayload for the local (no-Supabase) fallback.
+function curatePublic(details = {}, approxSize) {
   const out = {}
   for (const k of PUBLIC_KEYS) if (details[k]) out[k] = details[k]
+  const hasRegistry = details.hasRegistry !== false
+  out.hasRegistry = hasRegistry
+  if (hasRegistry) {
+    out.registries = (Array.isArray(details.registries) ? details.registries : [])
+      .filter((r) => r && r.url)
+      .map((r) => ({ name: r.name || '', url: r.url }))
+    if (details.allowStickToRegistryInquiry) out.stickToRegistry = !!details.stickToRegistry
+  } else {
+    out.registryMessage = details.registryMessage || ''
+  }
+  if (details.allowSizeInquiry && typeof approxSize === 'number') out.approxSize = approxSize
   return out
 }
 
@@ -30,9 +43,9 @@ export function buildGuestLink(token) {
   return `${base}?guest=1&w=${encodeURIComponent(token)}`
 }
 
-// Local-only fallback (no Supabase): encode the public details into the URL hash.
-export function buildLocalGuestLink(details) {
-  const payload = b64encode(JSON.stringify(pickPublic(details)))
+// Local-only fallback (no Supabase): encode the curated public details into the URL hash.
+export function buildLocalGuestLink(details, approxSize) {
+  const payload = b64encode(JSON.stringify(curatePublic(details, approxSize)))
   return `${location.origin}/?guest=1#w=${payload}`
 }
 
@@ -55,7 +68,9 @@ export function getSharedDetails() {
     const hash = new URLSearchParams(location.hash.replace(/^#/, ''))
     const w = hash.get('w')
     if (!w) return null
-    return pickPublic(JSON.parse(b64decode(w)))
+    // Already curated at encode time — return as-is (no private data is ever encoded).
+    const parsed = JSON.parse(b64decode(w))
+    return parsed && typeof parsed === 'object' ? parsed : null
   } catch {
     return null
   }
