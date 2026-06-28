@@ -52,6 +52,7 @@ export default function Login() {
         <div className="auth-logo">Hey&nbsp;Girl!</div>
         <p className="auth-sub">{mode === 'signup' ? 'Create your account' : 'Welcome back'}</p>
         <form onSubmit={submit} className="auth-form">
+          {mode === 'signup' && <div className="auth-section">Hey Girl Login</div>}
           <label>
             <span>Email</span>
             <input type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
@@ -80,10 +81,11 @@ export default function Login() {
                   required
                 />
               </label>
+              <div className="auth-section">*The Couple</div>
               <div className="auth-names">
-                <label><span>*Your first name</span><input value={p1First} onChange={(e) => setP1First(e.target.value)} autoComplete="given-name" /></label>
+                <label><span>Your first name</span><input value={p1First} onChange={(e) => setP1First(e.target.value)} autoComplete="given-name" /></label>
                 <label><span>Your last name</span><input value={p1Last} onChange={(e) => setP1Last(e.target.value)} autoComplete="family-name" /></label>
-                <label><span>*Partner's first name</span><input value={p2First} onChange={(e) => setP2First(e.target.value)} /></label>
+                <label><span>Partner's first name</span><input value={p2First} onChange={(e) => setP2First(e.target.value)} /></label>
                 <label><span>Partner's last name</span><input value={p2Last} onChange={(e) => setP2Last(e.target.value)} /></label>
               </div>
               <p className="auth-hint">*<strong>Note</strong> — you can change these names anytime in Shared Details! Use placeholder names or leave them blank while you explore Hey Girl if that makes you feel more comfortable.</p>
