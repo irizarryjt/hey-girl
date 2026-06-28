@@ -78,6 +78,10 @@ body {
 .auth-btn { margin-top: 4px; background: var(--rose); color: #fff; border: none; border-radius: 999px; padding: 12px; font-weight: 700; font-size: 15px; cursor: pointer; }
 .auth-btn:hover:not(:disabled) { background: var(--rose-deep); }
 .auth-btn:disabled { opacity: .6; }
+.auth-btn.ghost { background: #fff; color: var(--rose-deep); border: 1px solid var(--rose); }
+.auth-btn.ghost:hover:not(:disabled) { background: var(--blush); }
+.auth-reset { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 14px; }
+.auth-reset p { font-size: 13.5px; color: var(--muted); margin: 0 0 10px; }
 .auth-msg { margin-top: 14px; font-size: 13.5px; color: var(--rose-deep); }
 .auth-switch { margin-top: 16px; background: none; border: none; color: var(--rose); font-size: 13.5px; cursor: pointer; text-decoration: underline; }
 

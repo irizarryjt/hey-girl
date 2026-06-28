@@ -96,7 +96,7 @@ function GuestApp({ token, initialDetails }) {
 }
 
 function CoupleApp() {
-  const { session, ready } = useSession()
+  const { session, ready, recovery, clearRecovery } = useSession()
   const store = useStore(session)
   const [tab, setTab] = useState('chat')
 
@@ -137,6 +137,7 @@ function CoupleApp() {
   }
 
   if (!ready) return <Splash />
+  if (supabaseEnabled && recovery) return <Login recoveryMode onRecovered={clearRecovery} />
   if (supabaseEnabled && !session) return <Login />
   if (store.loading) return <Splash text="Loading your wedding…" />
 

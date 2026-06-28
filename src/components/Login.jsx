@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import { signIn, signUp } from '../lib/auth.js'
+import { signIn, signUp, resetPassword, updatePassword } from '../lib/auth.js'
 import { setPendingDetails } from '../lib/store.js'
 
-export default function Login() {
+export default function Login({ recoveryMode = false, onRecovered }) {
   const [mode, setMode] = useState('signin') // 'signin' | 'signup'
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -13,6 +13,7 @@ export default function Login() {
   const [p2Last, setP2Last] = useState('')
   const [busy, setBusy] = useState(false)
   const [msg, setMsg] = useState('')
+  const [offerReset, setOfferReset] = useState(false)
 
   async function submit(e) {
     e.preventDefault()
@@ -28,6 +29,7 @@ export default function Login() {
       const { data, error } = await fn(email.trim(), password)
       if (error) {
         setMsg(error.message)
+        if (mode === 'signin') setOfferReset(true)
       } else if (mode === 'signup') {
         // Stash the couple's names so they seed the new wedding once it's created.
         const names = {}
@@ -44,6 +46,76 @@ export default function Login() {
     } finally {
       setBusy(false)
     }
+  }
+
+  // Email a password-reset link to the address in the email field.
+  async function handleReset() {
+    if (busy) return
+    if (!email.trim()) {
+      setMsg('Enter your email above first, then tap reset.')
+      return
+    }
+    setBusy(true)
+    setMsg('')
+    try {
+      const { error } = await resetPassword(email.trim())
+      if (error) setMsg(error.message)
+      else {
+        setMsg(`Password reset link sent to ${email.trim()}. Check your inbox (and spam) for the link.`)
+        setOfferReset(false)
+      }
+    } catch (err) {
+      setMsg(err?.message || 'Could not send the reset email.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  // Set a new password after following the reset link (recovery session).
+  async function handleUpdatePassword(e) {
+    e.preventDefault()
+    if (busy) return
+    if (password !== confirm) {
+      setMsg("Passwords don't match — please re-enter them.")
+      return
+    }
+    setBusy(true)
+    setMsg('')
+    try {
+      const { error } = await updatePassword(password)
+      if (error) setMsg(error.message)
+      else {
+        setMsg('Password updated! Taking you in…')
+        onRecovered?.()
+      }
+    } catch (err) {
+      setMsg(err?.message || 'Could not update your password.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  if (recoveryMode) {
+    return (
+      <div className="auth-wrap">
+        <div className="auth-card">
+          <div className="auth-logo">Hey&nbsp;Girl!</div>
+          <p className="auth-sub">Set a new password</p>
+          <form onSubmit={handleUpdatePassword} className="auth-form">
+            <label>
+              <span>New password</span>
+              <input type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} minLength={6} required />
+            </label>
+            <label>
+              <span>Confirm new password</span>
+              <input type="password" autoComplete="new-password" value={confirm} onChange={(e) => setConfirm(e.target.value)} minLength={6} required />
+            </label>
+            <button type="submit" className="auth-btn" disabled={busy}>{busy ? 'One sec…' : 'Update password'}</button>
+          </form>
+          {msg && <p className="auth-msg">{msg}</p>}
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -96,9 +168,17 @@ export default function Login() {
           </button>
         </form>
         {msg && <p className="auth-msg">{msg}</p>}
+        {offerReset && mode === 'signin' && (
+          <div className="auth-reset">
+            <p>Forgot your password or having trouble signing in?</p>
+            <button type="button" className="auth-btn ghost" onClick={handleReset} disabled={busy}>
+              {busy ? 'Sending…' : 'Email me a password reset link'}
+            </button>
+          </div>
+        )}
         <button
           className="auth-switch"
-          onClick={() => { setMode(mode === 'signup' ? 'signin' : 'signup'); setMsg(''); setConfirm('') }}
+          onClick={() => { setMode(mode === 'signup' ? 'signin' : 'signup'); setMsg(''); setConfirm(''); setOfferReset(false) }}
           type="button"
         >
           {mode === 'signup' ? 'Already have an account? Sign in' : 'New here? Create an account'}
