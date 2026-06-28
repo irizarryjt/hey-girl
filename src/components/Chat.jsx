@@ -72,8 +72,9 @@ export default function Chat({
   notifyEnabled = false,
   onToggleNotify,
 }) {
-  // Start with the intro bubble only when an intro is provided; otherwise the
-  // chat opens empty (used after first login, where the welcome lives in FAQ).
+  // The welcome stays as the first message at the very top of the thread (like a
+  // text conversation); it scrolls up out of view as the chat grows. The full
+  // welcome also lives permanently in the FAQ tab.
   const [messages, setMessages] = useState(
     intro ? [{ role: 'assistant', content: intro, events: [], budgetItems: [] }] : []
   )

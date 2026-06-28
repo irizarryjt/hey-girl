@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { useStore, guestStats } from './lib/store.js'
 import { getSharedToken, getSharedDetails } from './lib/share.js'
 import { enableNotifications, showNotification } from './lib/notify.js'
@@ -99,9 +99,6 @@ function CoupleApp() {
   const { session, ready } = useSession()
   const store = useStore(session)
   const [tab, setTab] = useState('chat')
-  // Decide once per session whether to show the welcome bubble, then remember it
-  // as seen so it never shows again. The full welcome lives in the FAQ tab.
-  const showIntroRef = useRef(undefined)
 
   // When notifications are on, remind about budget balances due within 3 days.
   useEffect(() => {
@@ -127,13 +124,6 @@ function CoupleApp() {
     }
   }, [store.settings?.notifyTimeline, store.budget, store.settings?.notifiedDue])
 
-  // Once the welcome has been shown for this first session, persist that it's seen.
-  useEffect(() => {
-    if (showIntroRef.current && store.settings && !store.settings.seenIntro) {
-      store.setSeenIntro(true)
-    }
-  }, [store.loading, store.settings?.seenIntro])
-
   async function handleToggleNotify(wantOn) {
     if (wantOn) {
       const { ok, reason } = await enableNotifications()
@@ -149,10 +139,6 @@ function CoupleApp() {
   if (!ready) return <Splash />
   if (supabaseEnabled && !session) return <Login />
   if (store.loading) return <Splash text="Loading your wedding…" />
-
-  // Lazily decide (once) whether this session shows the welcome bubble.
-  if (showIntroRef.current === undefined) showIntroRef.current = !store.settings?.seenIntro
-  const showIntro = showIntroRef.current
 
   const stats = guestStats(store.guests)
 
@@ -187,7 +173,7 @@ function CoupleApp() {
             timelineOffer
             notifyEnabled={store.settings.notifyTimeline}
             onToggleNotify={handleToggleNotify}
-            intro={showIntro ? COUPLE_INTRO : ''}
+            intro={COUPLE_INTRO}
             suggestions={[
               "What's left in the flowers budget?",
               'When should I send save-the-dates?',

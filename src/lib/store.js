@@ -60,7 +60,7 @@ const seedEvents = [
   { id: 'e2', date: '2026-08-15', title: 'RSVP deadline', notes: 'Chase down stragglers' },
 ]
 
-export const defaultSettings = { notifyTimeline: false, notifiedDue: {}, seenIntro: false }
+export const defaultSettings = { notifyTimeline: false, notifiedDue: {} }
 
 export const defaultBudget = {
   total: 35000,
@@ -241,10 +241,6 @@ export function useStore(session) {
   const setNotifyTimeline = (on) =>
     setState((s) => ({ ...s, settings: { ...s.settings, notifyTimeline: !!on } }))
 
-  // Remember that the couple has seen the welcome intro, so it shows only once.
-  const setSeenIntro = (seen = true) =>
-    setState((s) => ({ ...s, settings: { ...s.settings, seenIntro: !!seen } }))
-
   // Remember a due-date reminder we've already shown, so it fires only once.
   const markDueNotified = (key) =>
     setState((s) => ({
@@ -268,7 +264,6 @@ export function useStore(session) {
     updateEvent,
     removeEvent,
     setNotifyTimeline,
-    setSeenIntro,
     markDueNotified,
   }
 }
