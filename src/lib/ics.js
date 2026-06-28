@@ -39,6 +39,7 @@ function vevent(ev) {
     `DTEND;VALUE=DATE:${nextDay(ev.date)}`,
     `SUMMARY:${esc(ev.title)}`,
   ]
+  if (ev.location) lines.push(`LOCATION:${esc(ev.location)}`)
   if (ev.notes) lines.push(`DESCRIPTION:${esc(ev.notes)}`)
   lines.push('END:VEVENT')
   return lines.join('\r\n')

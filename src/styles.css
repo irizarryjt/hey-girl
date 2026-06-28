@@ -293,6 +293,8 @@ button:disabled { opacity: .5; cursor: default; }
 .ev-chip.done { border-color: var(--good); color: var(--good); background: #f1f8f3; cursor: default; }
 .ev-chip.budget { border-color: var(--rose); color: var(--rose-deep); background: #fffafb; }
 .ev-chip.budget.done { border-color: var(--good); color: var(--good); background: #f1f8f3; }
+.ev-chip.invite { border-color: var(--rose); color: #fff; background: var(--rose); font-weight: 700; }
+.ev-chip.invite:hover { background: var(--rose-deep); border-color: var(--rose-deep); }
 .attach-btn { flex-shrink: 0; background: #fff; border: 1px solid var(--rose); color: var(--rose-deep); border-radius: 999px; width: 42px; font-size: 24px; font-weight: 600; line-height: 1; cursor: pointer; }
 .attach-btn:hover:not(:disabled) { background: var(--blush); }
 .attach-hint { padding: 0 16px 8px; font-size: 12.5px; color: var(--muted); line-height: 1.45; }

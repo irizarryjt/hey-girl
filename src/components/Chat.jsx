@@ -2,13 +2,16 @@ import { useEffect, useRef, useState } from 'react'
 import { askHeyGirl } from '../lib/api.js'
 import { showNotification } from '../lib/notify.js'
 import { extractFileText } from '../lib/extract.js'
+import { icsForEvents, downloadICS, eventFilename } from '../lib/ics.js'
 
 // Hey Girl may append fenced blocks of structured suggestions:
 //   ```heygirl:events  [{"date":"2026-08-01","title":"Book florist"}]  ```
 //   ```heygirl:budget  [{"category":"Catering","estimated":9000,...}]  ```
-// We pull those out, hide the raw blocks, and render one-tap "Add" buttons.
+//   ```heygirl:invite  add  ```  (guest mode — show a calendar download button)
+// We pull those out, hide the raw blocks, and render one-tap buttons.
 const EVENTS_RE = /```heygirl:events\s*([\s\S]*?)```/i
 const BUDGET_RE = /```heygirl:budget\s*([\s\S]*?)```/i
+const INVITE_RE = /```heygirl:invite[\s\S]*?```/i
 
 function parseBlock(text, re, map) {
   const match = text.match(re)
@@ -38,7 +41,20 @@ function parseReply(text) {
       : null
   )
   clean = bd.clean
-  return { clean: clean.trim(), events: ev.items, budgetItems: bd.items }
+  const invite = INVITE_RE.test(clean)
+  if (invite) clean = clean.replace(INVITE_RE, '')
+  return { clean: clean.trim(), events: ev.items, budgetItems: bd.items, invite }
+}
+
+// Build the wedding-day event (for a guest's calendar download) from public details.
+function weddingEvent(details = {}) {
+  if (!details.date) return null
+  const who = details.coupleNames ? `${details.coupleNames}'s Wedding` : 'The Wedding'
+  const location = [details.venueName, details.venueAddress].filter(Boolean).join(', ')
+  const notes = [details.time && `Ceremony time: ${details.time}`, details.dressCode && `Dress code: ${details.dressCode}`]
+    .filter(Boolean)
+    .join(' · ')
+  return { id: 'wedding-day', title: who, date: details.date, location, notes }
 }
 
 // Render **bold** as dark-rose <strong> and [text](url) as clickable links.
@@ -104,8 +120,8 @@ export default function Chat({
         .filter((m, i) => !(i === 0 && m.role === 'assistant'))
         .map((m) => ({ role: m.role, content: m.content }))
       const { reply } = await askHeyGirl({ mode, messages: history, details, guestStats: stats, budget, events })
-      const { clean, events: suggested, budgetItems } = parseReply(reply)
-      setMessages((m) => [...m, { role: 'assistant', content: clean, events: suggested, budgetItems }])
+      const { clean, events: suggested, budgetItems, invite } = parseReply(reply)
+      setMessages((m) => [...m, { role: 'assistant', content: clean, events: suggested, budgetItems, invite }])
       if (notifyEnabled && suggested.length > 0) {
         const titles = suggested.map((e) => e.title).slice(0, 3).join(', ')
         showNotification('Hey Girl mapped out your timeline 💍', `${suggested.length} date${suggested.length > 1 ? 's' : ''} to add: ${titles}`)
@@ -179,6 +195,16 @@ export default function Chat({
                       </button>
                     )
                   })}
+                </div>
+              )}
+              {m.invite && weddingEvent(details) && (
+                <div className="ev-suggest">
+                  <button
+                    className="ev-chip invite"
+                    onClick={() => { const ev = weddingEvent(details); downloadICS(eventFilename(ev), icsForEvents(ev)) }}
+                  >
+                    📅 Add to your calendar
+                  </button>
                 </div>
               )}
             </div>

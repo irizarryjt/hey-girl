@@ -160,6 +160,12 @@ Rules:
 - If a guest asks about something not in the details, say you don't have that info yet and suggest they reach out to the couple directly.
 - Do not collect personal data or make promises on the couple's behalf.
 
+CALENDAR INVITE: When the guest asks about WHEN the wedding is (date or time) or WHERE it is (venue or location), answer normally, then — only if a wedding date is known — append a fenced code block in EXACTLY this format at the very end:
+\`\`\`heygirl:invite
+add
+\`\`\`
+This signals the app to show the guest a "Add to your calendar" download button. Include the block only for date/time/location questions, and never if there is no date in the details. Write your friendly reply first, then the block.
+
 Published wedding details:
 ${JSON.stringify(publicDetails, null, 2)}`
 }
