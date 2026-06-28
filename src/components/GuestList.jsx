@@ -177,7 +177,11 @@ export default function GuestList({ guests, addGuest, updateGuest, removeGuest }
                 </div>
               )}
 
-              <button className="del" onClick={() => removeGuest(g.id)} title="Remove">×</button>
+              <button
+                className="del"
+                onClick={() => { if (window.confirm(`Remove ${g.name || 'this guest'} and their whole party from your list?`)) removeGuest(g.id) }}
+                title="Remove"
+              >×</button>
             </li>
           )
         })}

@@ -5,12 +5,17 @@ export default function Login() {
   const [mode, setMode] = useState('signin') // 'signin' | 'signup'
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirm, setConfirm] = useState('')
   const [busy, setBusy] = useState(false)
   const [msg, setMsg] = useState('')
 
   async function submit(e) {
     e.preventDefault()
     if (busy) return
+    if (mode === 'signup' && password !== confirm) {
+      setMsg("Passwords don't match — please re-enter them.")
+      return
+    }
     setBusy(true)
     setMsg('')
     try {
@@ -50,6 +55,19 @@ export default function Login() {
               required
             />
           </label>
+          {mode === 'signup' && (
+            <label>
+              <span>Confirm password</span>
+              <input
+                type="password"
+                autoComplete="new-password"
+                value={confirm}
+                onChange={(e) => setConfirm(e.target.value)}
+                minLength={6}
+                required
+              />
+            </label>
+          )}
           <button type="submit" className="auth-btn" disabled={busy}>
             {busy ? 'One sec…' : mode === 'signup' ? 'Create account' : 'Sign in'}
           </button>
@@ -57,7 +75,7 @@ export default function Login() {
         {msg && <p className="auth-msg">{msg}</p>}
         <button
           className="auth-switch"
-          onClick={() => { setMode(mode === 'signup' ? 'signin' : 'signup'); setMsg('') }}
+          onClick={() => { setMode(mode === 'signup' ? 'signin' : 'signup'); setMsg(''); setConfirm('') }}
         >
           {mode === 'signup' ? 'Already have an account? Sign in' : 'New here? Create an account'}
         </button>

@@ -142,7 +142,7 @@ export default function Calendar({ details, events, budget, addEvent, updateEven
                     onChange={(ev) => updateEvent(e.id, { date: ev.target.value })}
                     title="Change date"
                   />
-                  <button className="del small" onClick={() => removeEvent(e.id)} title="Remove">×</button>
+                  <button className="del small" onClick={() => { if (window.confirm(`Delete "${e.title || 'this event'}" from your calendar?`)) removeEvent(e.id) }} title="Remove">×</button>
                 </div>
               )}
             </li>
@@ -171,7 +171,7 @@ export default function Calendar({ details, events, budget, addEvent, updateEven
                 onChange={(ev) => updateEvent(e.id, { title: ev.target.value })}
               />
               <input type="date" value={e.date} onChange={(ev) => updateEvent(e.id, { date: ev.target.value })} />
-              <button className="del small" onClick={() => removeEvent(e.id)} title="Remove">×</button>
+              <button className="del small" onClick={() => { if (window.confirm(`Delete "${e.title || 'this event'}" from your calendar?`)) removeEvent(e.id) }} title="Remove">×</button>
             </div>
           ))}
         </div>
