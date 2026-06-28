@@ -181,7 +181,7 @@ function pickPublicDetails(d = {}) {
 }
 
 app.get('/api/health', (req, res) => {
-  res.json({ ok: true, hasKey: !!apiKey, model: MODEL, guestSharing: !!sbAdmin })
+  res.json({ ok: true, hasKey: !!apiKey, model: MODEL, modelChain: MODEL_CHAIN, guestSharing: !!sbAdmin })
 })
 
 // Public, read-only: returns ONLY whitelisted wedding details for a share token.
