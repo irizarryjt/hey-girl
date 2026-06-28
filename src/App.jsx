@@ -182,9 +182,11 @@ function CoupleApp() {
           />
         ) : (
           <>
-            <div className="tab-header">
-              <h1>{TABS.find((t) => t.id === tab)?.name}</h1>
-            </div>
+            {tab !== 'share' && (
+              <div className="tab-header">
+                <h1>{TABS.find((t) => t.id === tab)?.name}</h1>
+              </div>
+            )}
             <div className="tab-body">
               {tab === 'calendar' && (
           <Calendar
