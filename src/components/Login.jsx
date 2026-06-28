@@ -48,7 +48,7 @@ export default function Login() {
 
   return (
     <div className="auth-wrap">
-      <div className="auth-card">
+      <div className={`auth-card ${mode === 'signup' ? 'signup' : ''}`}>
         <div className="auth-logo">Hey&nbsp;Girl!</div>
         <p className="auth-sub">{mode === 'signup' ? 'Create your account' : 'Welcome back'}</p>
         <form onSubmit={submit} className="auth-form">
@@ -81,12 +81,12 @@ export default function Login() {
                 />
               </label>
               <div className="auth-names">
-                <label><span>Your first name</span><input value={p1First} onChange={(e) => setP1First(e.target.value)} autoComplete="given-name" /></label>
+                <label><span>*Your first name</span><input value={p1First} onChange={(e) => setP1First(e.target.value)} autoComplete="given-name" /></label>
                 <label><span>Your last name</span><input value={p1Last} onChange={(e) => setP1Last(e.target.value)} autoComplete="family-name" /></label>
-                <label><span>Partner's first name</span><input value={p2First} onChange={(e) => setP2First(e.target.value)} /></label>
+                <label><span>*Partner's first name</span><input value={p2First} onChange={(e) => setP2First(e.target.value)} /></label>
                 <label><span>Partner's last name</span><input value={p2Last} onChange={(e) => setP2Last(e.target.value)} /></label>
               </div>
-              <p className="auth-hint">Optional — you can change these anytime in Shared Details. Leave them blank to use a placeholder while you explore Hey Girl.</p>
+              <p className="auth-hint">*<strong>Note</strong> — you can change these names anytime in Shared Details! Use placeholder names or leave them blank while you explore Hey Girl if that makes you feel more comfortable.</p>
             </>
           )}
           <button type="submit" className="auth-btn" disabled={busy}>
