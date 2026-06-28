@@ -133,6 +133,7 @@ function CoupleApp() {
   const { session, ready, recovery, clearRecovery } = useSession()
   const store = useStore(session)
   const [tab, setTab] = useState('chat')
+  const [menuOpen, setMenuOpen] = useState(false)
 
   // When notifications are on, remind about budget balances due within 3 days.
   useEffect(() => {
@@ -194,6 +195,31 @@ function CoupleApp() {
           )}
         </div>
       </header>
+
+      <div className="subbar">
+        <button className="menu-btn" onClick={() => setMenuOpen(true)} aria-label="Open menu">☰</button>
+      </div>
+
+      {menuOpen && (
+        <>
+          <div className="sidebar-backdrop" onClick={() => setMenuOpen(false)} />
+          <nav className="sidebar">
+            <div className="sidebar-head">
+              <span className="sidebar-title">Menu</span>
+              <button className="sidebar-close" onClick={() => setMenuOpen(false)} aria-label="Close menu">×</button>
+            </div>
+            {TABS.map((t) => (
+              <button
+                key={t.id}
+                className={`sidebar-item ${tab === t.id ? 'active' : ''}`}
+                onClick={() => { setTab(t.id); setMenuOpen(false) }}
+              >
+                {t.label}
+              </button>
+            ))}
+          </nav>
+        </>
+      )}
 
       <main className="content">
         {tab === 'chat' ? (
