@@ -95,6 +95,7 @@ body {
 /* ---- Chat ---- */
 .chat {
   display: flex; flex-direction: column; height: 100%;
+  width: 100%; max-width: 720px; margin: 0 auto;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, Roboto, Helvetica, Arial, sans-serif;
 }
 /* Hey Girl's responses render in a classic serif. */
