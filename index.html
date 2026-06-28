@@ -190,13 +190,8 @@
 <header class="hero">
   <div class="wrap">
     <div>
-      <div class="savedate" id="savedate" hidden>
-        <div class="sd-label">Save the date</div>
-        <div class="sd-date" id="sdDate"></div>
-        <div class="sd-names" id="sdNames"></div>
-      </div>
       <span class="eyebrow">Your wedding planning bestie</span>
-      <h1 class="serif">The wedding planner who <em>actually</em> texts back.</h1>
+      <h1 class="serif">The wedding planner who <em>always</em> texts back.</h1>
       <p class="lede">Hey Girl knows your budget, your guest list, and your timeline — and answers in seconds, day or night.</p>
       <div class="hero-cta">
         <a class="btn" href="/app/">Start planning free</a>
@@ -209,7 +204,7 @@
       <div class="phone-screen">
         <div class="phone-top">
           <div class="pl">Hey Girl</div>
-          <div class="ps">Alex &amp; Sam · 98 days to go</div>
+          <div class="ps">Bride &amp; Groom · 100 days to go</div>
         </div>
         <div class="phone-body">
           <div class="b you">What's left in the flowers budget?</div>
@@ -324,32 +319,6 @@
     <div>Made with 🤍 for couples who'd rather enjoy the engagement.</div>
   </div>
 </footer>
-
-<script>
-  // Pull the couple's saved details (same-origin localStorage) to personalize the header.
-  (function () {
-    try {
-      var raw = localStorage.getItem('heygirl.v1');
-      if (!raw) return;
-      var details = (JSON.parse(raw) || {}).details || {};
-      var box = document.getElementById('savedate');
-      var dateEl = document.getElementById('sdDate');
-      var namesEl = document.getElementById('sdNames');
-      var has = false;
-      if (details.date) {
-        var p = String(details.date).split('-').map(Number);
-        if (p[0] && p[1] && p[2]) {
-          dateEl.textContent = new Date(p[0], p[1] - 1, p[2]).toLocaleDateString('en-US', {
-            weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'
-          });
-          has = true;
-        }
-      }
-      if (details.coupleNames) { namesEl.textContent = details.coupleNames; has = true; }
-      if (has) box.hidden = false;
-    } catch (e) {}
-  })();
-</script>
 
 </body>
 </html>
