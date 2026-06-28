@@ -15,6 +15,18 @@ import Faq from './components/Faq.jsx'
 import Login from './components/Login.jsx'
 import GuestGate from './components/GuestGate.jsx'
 
+// True on narrow (phone) viewports, kept in sync on resize.
+function useIsMobile() {
+  const [mobile, setMobile] = useState(() => typeof window !== 'undefined' && window.matchMedia('(max-width: 480px)').matches)
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 480px)')
+    const onChange = () => setMobile(mq.matches)
+    mq.addEventListener('change', onChange)
+    return () => mq.removeEventListener('change', onChange)
+  }, [])
+  return mobile
+}
+
 function prettyDate(str) {
   if (!str) return ''
   const [y, m, d] = String(str).split('-').map(Number)
@@ -27,16 +39,19 @@ const COUPLE_INTRO =
   "Congratulations on your engagement! I'm your wedding planning bestie. Ask me about your timeline, budget, etiquette, or anything wedding related. Heads up: everything's filled in with placeholder details right now — a sample couple, budget, guests, and dates — just so you can see how it all works. Update anything in the tabs to make it yours."
 
 const TABS = [
-  { id: 'chat', label: '💬 Hey Girl Chat', name: 'Hey Girl Chat' },
-  { id: 'calendar', label: '📅 Calendar', name: 'Calendar' },
-  { id: 'guests', label: '🎟️ Guests', name: 'Guests' },
-  { id: 'budget', label: '💰 Budget', name: 'Budget' },
-  { id: 'details', label: '📋 Shared Details', name: 'Shared Details' },
-  { id: 'registry', label: '🎁 Registry', name: 'Registry' },
-  { id: 'share', label: '🔗 Share', name: 'Share' },
-  { id: 'guestmode', label: '👀 Guest View', name: 'Guest View' },
-  { id: 'faq', label: '❓ FAQ', name: 'FAQ' },
+  { id: 'chat', label: '💬 Hey Girl Chat', name: 'Hey Girl Chat', short: '💬 Chat' },
+  { id: 'calendar', label: '📅 Calendar', name: 'Calendar', short: '📅 Calendar' },
+  { id: 'guests', label: '🎟️ Guests', name: 'Guests', short: '🎟️ Guests' },
+  { id: 'budget', label: '💰 Budget', name: 'Budget', short: '💰 Budget' },
+  { id: 'details', label: '📋 Shared Details', name: 'Shared Details', short: '📋 Details' },
+  { id: 'registry', label: '🎁 Registry', name: 'Registry', short: '🎁 Registry' },
+  { id: 'share', label: '🔗 Share', name: 'Share', short: '🔗 Share' },
+  { id: 'guestmode', label: '👀 Guest View', name: 'Guest View', short: '👀 Guests' },
+  { id: 'faq', label: '❓ FAQ', name: 'FAQ', short: '❓ FAQ' },
 ]
+
+// On phones, only these show in the bottom bar; the rest live under a "•••" tab.
+const MOBILE_PRIMARY = ['chat', 'calendar', 'guests', 'budget']
 
 function Splash({ text = 'Loading…' }) {
   return (
@@ -134,6 +149,8 @@ function CoupleApp() {
   const store = useStore(session)
   const [tab, setTab] = useState('chat')
   const [menuOpen, setMenuOpen] = useState(false)
+  const [moreOpen, setMoreOpen] = useState(false)
+  const isMobile = useIsMobile()
 
   // When notifications are on, remind about budget balances due within 3 days.
   useEffect(() => {
@@ -307,12 +324,38 @@ function CoupleApp() {
         )}
       </main>
 
+      {isMobile && moreOpen && (
+        <>
+          <div className="more-backdrop" onClick={() => setMoreOpen(false)} />
+          <div className="more-popup">
+            {TABS.filter((t) => !MOBILE_PRIMARY.includes(t.id)).map((t) => (
+              <button
+                key={t.id}
+                className={`more-item ${tab === t.id ? 'active' : ''}`}
+                onClick={() => { setTab(t.id); setMoreOpen(false) }}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+
       <nav className="tabbar">
-        {TABS.map((t) => (
-          <button key={t.id} className={tab === t.id ? 'active' : ''} onClick={() => setTab(t.id)}>
-            {t.label}
+        {(isMobile ? TABS.filter((t) => MOBILE_PRIMARY.includes(t.id)) : TABS).map((t) => (
+          <button key={t.id} className={tab === t.id ? 'active' : ''} onClick={() => { setMoreOpen(false); setTab(t.id) }}>
+            {isMobile ? (t.short || t.label) : t.label}
           </button>
         ))}
+        {isMobile && (
+          <button
+            className={!MOBILE_PRIMARY.includes(tab) ? 'active' : ''}
+            onClick={() => setMoreOpen((o) => !o)}
+            aria-label="More tabs"
+          >
+            ••• More
+          </button>
+        )}
       </nav>
     </div>
   )

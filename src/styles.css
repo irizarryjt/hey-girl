@@ -313,6 +313,18 @@ button:disabled { opacity: .5; cursor: default; }
 .tabbar button { flex: 1; border: none; background: transparent; padding: 12px 4px; font-size: 13px; color: var(--muted); cursor: pointer; }
 .tabbar button.active { color: var(--rose-deep); font-weight: 700; box-shadow: inset 0 2px 0 var(--gold); }
 
+/* Mobile "•••" overflow popup (tabs that don't fit the bottom bar) */
+.more-backdrop { position: fixed; inset: 0; z-index: 60; background: transparent; }
+.more-popup {
+  position: fixed; z-index: 61; right: 8px; bottom: calc(56px + env(safe-area-inset-bottom));
+  background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+  box-shadow: 0 6px 22px rgba(58, 43, 43, 0.22);
+  display: flex; flex-direction: column; padding: 6px; min-width: 190px; max-height: 60vh; overflow-y: auto;
+}
+.more-item { text-align: left; background: transparent; border: none; padding: 11px 12px; border-radius: 8px; font-size: 14px; color: var(--ink); cursor: pointer; }
+.more-item:hover { background: var(--bg-2); }
+.more-item.active { background: var(--blush); color: var(--rose-deep); font-weight: 700; }
+
 /* On wide enough windows, let the app grow so every tab label fits on one line. */
 @media (min-width: 1000px) {
   .app { max-width: 980px; }
