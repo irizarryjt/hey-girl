@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { guestStats, partySize, partyAgeBreakdown, emptyMember } from '../lib/store.js'
+import { guestStats, partySize, emptyMember } from '../lib/store.js'
 
 const RSVP = ['pending', 'yes', 'no']
 const EVENTS = [
@@ -60,14 +60,13 @@ export default function GuestList({ guests, addGuest, updateGuest, removeGuest }
 
       <ul className="guests">
         {guests.map((g) => {
-          const { adults, kids } = partyAgeBreakdown(g)
           const isOpen = !!open[g.id]
           return (
             <li key={g.id} className="guest">
               <div className="guest-main">
                 <input className="guest-name" value={g.name} onChange={(e) => updateGuest(g.id, { name: e.target.value })} />
                 <div className="guest-meta">
-                  <span className="party-count">Party of {partySize(g)} · {adults}A/{kids}K</span>
+                  <span className="party-count">Party of {partySize(g)}</span>
                   <select value={g.rsvp} onChange={(e) => updateGuest(g.id, { rsvp: e.target.value })} className={`rsvp ${g.rsvp}`}>
                     {RSVP.map((r) => <option key={r} value={r}>{r}</option>)}
                   </select>
@@ -81,15 +80,19 @@ export default function GuestList({ guests, addGuest, updateGuest, removeGuest }
 
               {isOpen && (
                 <div className="guest-details">
-                  <Field label="Email"><input value={g.email} onChange={(e) => updateGuest(g.id, { email: e.target.value })} placeholder="email@example.com" /></Field>
-                  <Field label="Phone"><input value={g.phone} onChange={(e) => updateGuest(g.id, { phone: e.target.value })} placeholder="(555) 123-4567" /></Field>
-                  <Field label="Mailing address" full>
-                    <textarea rows="2" value={g.address} onChange={(e) => updateGuest(g.id, { address: e.target.value })} placeholder="Street, city, state ZIP" />
-                  </Field>
-                  <label className="ck full">
-                    <input type="checkbox" checked={!!g.useForMailing} onChange={() => setMailing(g, 'primary')} />
-                    Use this address for mailing physical invitations
-                  </label>
+                  {!g.isChild && (
+                    <>
+                      <Field label="Email"><input value={g.email} onChange={(e) => updateGuest(g.id, { email: e.target.value })} placeholder="email@example.com" /></Field>
+                      <Field label="Phone"><input value={g.phone} onChange={(e) => updateGuest(g.id, { phone: e.target.value })} placeholder="(555) 123-4567" /></Field>
+                      <Field label="Mailing address" full>
+                        <textarea rows="2" value={g.address} onChange={(e) => updateGuest(g.id, { address: e.target.value })} placeholder="Street, city, state ZIP" />
+                      </Field>
+                      <label className="ck full">
+                        <input type="checkbox" checked={!!g.useForMailing} onChange={() => setMailing(g, 'primary')} />
+                        Use this address for mailing physical invitations
+                      </label>
+                    </>
+                  )}
 
                   <div className="row3">
                     <Field label="Side">
@@ -139,11 +142,11 @@ export default function GuestList({ guests, addGuest, updateGuest, removeGuest }
                         <div className="member-grid">
                           <input value={m.meal} onChange={(e) => updateMember(g, m.id, { meal: e.target.value })} placeholder="Meal" />
                           <input value={m.dietary} onChange={(e) => updateMember(g, m.id, { dietary: e.target.value })} placeholder="Dietary" />
-                          <input value={m.email} onChange={(e) => updateMember(g, m.id, { email: e.target.value })} placeholder="Email" />
-                          <input value={m.phone} onChange={(e) => updateMember(g, m.id, { phone: e.target.value })} placeholder="Phone" />
+                          {!m.isChild && <input value={m.email} onChange={(e) => updateMember(g, m.id, { email: e.target.value })} placeholder="Email" />}
+                          {!m.isChild && <input value={m.phone} onChange={(e) => updateMember(g, m.id, { phone: e.target.value })} placeholder="Phone" />}
                         </div>
-                        <textarea rows="2" value={m.address} onChange={(e) => updateMember(g, m.id, { address: e.target.value })} placeholder="Mailing address" />
-                        <label className="ck"><input type="checkbox" checked={!!m.useForMailing} onChange={() => setMailing(g, m.id)} /> Use this address for mailing invitations</label>
+                        {!m.isChild && <textarea rows="2" value={m.address} onChange={(e) => updateMember(g, m.id, { address: e.target.value })} placeholder="Mailing address" />}
+                        {!m.isChild && <label className="ck"><input type="checkbox" checked={!!m.useForMailing} onChange={() => setMailing(g, m.id)} /> Use this address for mailing invitations</label>}
                         <label className="ck"><input type="checkbox" checked={!!m.isChild} onChange={(e) => updateMember(g, m.id, { isChild: e.target.checked })} /> Child</label>
                       </div>
                     ))}
