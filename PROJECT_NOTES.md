@@ -72,6 +72,27 @@ npm run dev              # Vite on :5173 + Express proxy on :8787
 - Model tier by plan: Sonnet free / Opus paid (needs billing).
 - Vendor manager, per-wedding guest codes, email/SMS RSVP reminders, calendar auto-archive.
 
+## Guest RSVP — future hardening (before a large/public deploy)
+The guest RSVP flow today is: open link → guest enters name + a self-chosen
+password → name-match against the guest list (creates a `selfReported` record if
+no match) → RSVP via a confirmation card. Couples can flag/review self-added
+guests and reset a guest's password from the Guests tab. Things to add later:
+- **Harden guest identity (the name-match weak link).** Anyone with the link can
+  type any name, so a guest could claim someone else's name or self-add a fake
+  one. Mitigated for now by couple review + low stakes. Before a large deployment,
+  strengthen identity — the cleanest option is **email verification / magic code**
+  (verify the email the guest provides; doubles as password-less login and
+  password reset). This needs email-sending infra (the same SMTP you set up for
+  password resets — see DEPLOY.md). Could also add per-guest invite codes.
+- **Guest self-serve password reset.** Today only the couple can reset a guest's
+  password (Guests tab → Reset password). Add a guest-facing reset, ideally via
+  the verified email above, so guests aren't locked out if they forget.
+- **Separate `rsvps` table.** RSVPs currently read-modify-write the single wedding
+  JSON blob via the service-role server, which has a small clobber window if the
+  couple edits at the same instant. For higher RSVP volume, move RSVPs to their own
+  Supabase table (anon insert, no read) and reconcile into the guest list — removes
+  blob contention and is the cleaner long-term shape.
+
 ## Scheduled tasks (in the Claude app, not the codebase)
 - A check-in was scheduled re: keeping the landing page as the front door.
 - Deploy-help reminder. (These live in the app's Scheduled section.)

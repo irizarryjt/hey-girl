@@ -94,5 +94,19 @@ premium benefit for paid users.
 - Until accounts exist, the model is set globally via the CLAUDE_MODEL env var (and the
   529 fallback to FALLBACK_MODEL already in place).
 
+### Guest RSVP hardening (before a large/public deploy)
+Guests RSVP through the guest Hey Girl chat: name + a self-chosen password, then a
+name-match (self-reported record if no match) and a confirmation card. To harden
+before scaling up:
+
+1. **Strengthen identity beyond name-match.** Add email verification / magic-code
+   sign-in for guests (verify the email they give; doubles as password-less login
+   and reset). Needs email infra (same SMTP as password resets). Per-guest invite
+   codes are an alternative.
+2. **Guest self-serve password reset** (today only the couple can reset, on the
+   Guests tab) — ideally via the verified email above.
+3. **Separate `rsvps` table** instead of read-modify-write on the single wedding
+   JSON blob, to avoid clobber risk and scale RSVP volume.
+
 ### Other ideas
 Vendor manager (beyond budget links), real database + auth, per-wedding code for guest links, email/SMS RSVP reminders, and completed-event auto-archiving on the calendar.

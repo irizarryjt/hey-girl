@@ -66,6 +66,8 @@ export default function GuestList({ guests, addGuest, updateGuest, removeGuest }
               <div className="guest-main">
                 <input className="guest-name" value={g.name} onChange={(e) => updateGuest(g.id, { name: e.target.value })} />
                 <div className="guest-meta">
+                  {g.selfReported && <span className="badge">Self-added</span>}
+                  {g.rsvpSubmittedAt && <span className="badge alt">RSVP via link</span>}
                   <span className="party-count">Party of {partySize(g)}</span>
                   <select value={g.rsvp} onChange={(e) => updateGuest(g.id, { rsvp: e.target.value })} className={`rsvp ${g.rsvp}`}>
                     {RSVP.map((r) => <option key={r} value={r}>{r}</option>)}
@@ -168,6 +170,24 @@ export default function GuestList({ guests, addGuest, updateGuest, removeGuest }
                     </div>
                     {g.giftReceived && (
                       <input value={g.gift} onChange={(e) => updateGuest(g.id, { gift: e.target.value })} placeholder="Describe gift" />
+                    )}
+                  </div>
+
+                  <div className="detail-group">
+                    <div className="detail-label">Guest access</div>
+                    <p className="hint" style={{ margin: 0 }}>
+                      {g.access?.hash
+                        ? 'This guest set a password to access their RSVP via the guest link.'
+                        : 'No guest password set yet.'}
+                      {g.rsvpSubmittedAt ? ` Last RSVP update: ${new Date(g.rsvpSubmittedAt).toLocaleDateString('en-US')}.` : ''}
+                    </p>
+                    {g.access?.hash && (
+                      <button
+                        className="add-member"
+                        onClick={() => { if (window.confirm(`Reset ${g.name || 'this guest'}'s RSVP password? They'll choose a new one next time they sign in with their name.`)) updateGuest(g.id, { access: null }) }}
+                      >
+                        Reset password
+                      </button>
                     )}
                   </div>
 
