@@ -88,9 +88,14 @@ body {
 .content { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
 
 /* Hamburger + slide-in sidebar nav */
-.subbar { flex: 0 0 auto; padding: 6px 10px; border-bottom: 1px solid var(--line); background: var(--card); }
-.menu-btn { background: transparent; border: none; font-size: 22px; line-height: 1; color: var(--rose-deep); cursor: pointer; padding: 4px 8px; border-radius: 8px; }
-.menu-btn:hover { background: var(--blush); }
+/* Compact, left-aligned bar — no full-width banner, to save screen space */
+.subbar { flex: 0 0 auto; padding: 8px 10px; align-self: flex-start; }
+.menu-btn {
+  background: linear-gradient(135deg, var(--rose), var(--rose-deep));
+  border: none; font-size: 18px; line-height: 1; color: #fff; cursor: pointer;
+  padding: 8px 12px; border-radius: 10px; box-shadow: 0 1px 4px rgba(58, 43, 43, 0.2);
+}
+.menu-btn:hover { filter: brightness(1.06); }
 .sidebar-backdrop { position: fixed; inset: 0; background: rgba(58, 43, 43, 0.35); z-index: 60; }
 .sidebar {
   position: fixed; top: 0; left: 0; bottom: 0; z-index: 61;
