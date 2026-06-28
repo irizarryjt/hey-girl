@@ -163,6 +163,37 @@ function freshState() {
   return { details: defaultDetails, guests: seedGuests, budget: defaultBudget, events: seedEvents, settings: defaultSettings }
 }
 
+// Couple names captured at sign-up are stashed here until their wedding row is
+// created (which may be on a later sign-in if email confirmation is required).
+const PENDING_DETAILS_KEY = 'heygirl.pendingDetails'
+
+export function setPendingDetails(partial) {
+  try {
+    if (partial && Object.keys(partial).length) localStorage.setItem(PENDING_DETAILS_KEY, JSON.stringify(partial))
+  } catch {}
+}
+
+function consumePendingDetails() {
+  try {
+    const raw = localStorage.getItem(PENDING_DETAILS_KEY)
+    if (!raw) return null
+    localStorage.removeItem(PENDING_DETAILS_KEY)
+    return JSON.parse(raw)
+  } catch {
+    return null
+  }
+}
+
+// Apply any names captured at sign-up to a brand-new wedding's details, then
+// recompute the display "First & First" couple name.
+function applyPendingNames(details) {
+  const pending = consumePendingDetails()
+  if (!pending) return details
+  const merged = { ...details, ...pending }
+  merged.coupleNames = composeCoupleNames(merged) || details.coupleNames
+  return merged
+}
+
 // Normalize/migrate any saved blob (from localStorage or Supabase) into current shape.
 function migrateAll(data) {
   const d = data && typeof data === 'object' ? data : {}
@@ -224,6 +255,7 @@ export function useStore(session) {
       } else {
         console.log('[store] no row found — creating one')
         const seed = freshState()
+        seed.details = applyPendingNames(seed.details)
         const { data: created, error: insErr } = await supabase
           .from('weddings')
           .insert({ user_id: session.user.id, data: seed })
