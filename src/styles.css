@@ -233,6 +233,11 @@ button:disabled { opacity: .5; cursor: default; }
 .add-member { align-self: flex-start; background: #fff; border: 1px solid var(--rose); color: var(--rose-deep); border-radius: 999px; padding: 6px 12px; font-size: 13px; font-weight: 600; cursor: pointer; }
 .add-member:hover { background: var(--blush); }
 
+.yn { display: inline-flex; align-self: flex-start; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
+.yn-btn { border: none; background: #fff; color: var(--muted); padding: 6px 18px; font-size: 13px; font-weight: 600; cursor: pointer; }
+.yn-btn + .yn-btn { border-left: 1px solid var(--line); }
+.yn-btn.on { background: var(--rose); color: #fff; }
+
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .form-grid label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--muted); }
 .form-grid label.full { grid-column: 1 / -1; }

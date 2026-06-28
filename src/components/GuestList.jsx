@@ -161,10 +161,13 @@ export default function GuestList({ guests, addGuest, updateGuest, removeGuest }
                   </div>
 
                   <div className="detail-group">
-                    <div className="detail-label">Gift</div>
-                    <label className="ck"><input type="checkbox" checked={!!g.giftReceived} onChange={(e) => updateGuest(g.id, { giftReceived: e.target.checked })} /> Gift received</label>
+                    <div className="detail-label">Gift Received</div>
+                    <div className="yn">
+                      <button type="button" className={`yn-btn ${g.giftReceived ? 'on' : ''}`} onClick={() => updateGuest(g.id, { giftReceived: true })}>Yes</button>
+                      <button type="button" className={`yn-btn ${!g.giftReceived ? 'on' : ''}`} onClick={() => updateGuest(g.id, { giftReceived: false })}>No</button>
+                    </div>
                     {g.giftReceived && (
-                      <input value={g.gift} onChange={(e) => updateGuest(g.id, { gift: e.target.value })} placeholder="What was the gift?" />
+                      <input value={g.gift} onChange={(e) => updateGuest(g.id, { gift: e.target.value })} placeholder="Describe gift" />
                     )}
                   </div>
 
