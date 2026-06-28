@@ -49,10 +49,46 @@ function migrateDetails(details) {
   }
 }
 
+// Default set of events a guest can be invited to.
+export const defaultInvitedTo = { ceremony: true, reception: true, rehearsal: false, welcome: false, brunch: false }
+
+// A blank additional party member (plus-ones / family) with their own contact info.
+export function emptyMember(extra = {}) {
+  return {
+    id: crypto.randomUUID(),
+    name: '', email: '', phone: '', address: '', useForMailing: false,
+    isChild: false, meal: '', dietary: '', ...extra,
+  }
+}
+
 const seedGuests = [
-  { id: 'g1', name: 'Jordan Lee', partySize: 2, rsvp: 'yes', meal: 'Chicken', notes: '' },
-  { id: 'g2', name: 'Taylor Brooks', partySize: 1, rsvp: 'pending', meal: '', notes: 'College roommate' },
-  { id: 'g3', name: 'Morgan Diaz', partySize: 4, rsvp: 'no', meal: '', notes: 'Out of town' },
+  {
+    id: 'g1', name: 'Jordan Lee', email: 'jordan@example.com', phone: '(555) 200-1010',
+    address: '14 Maple St, Austin, TX 78701', useForMailing: true, rsvp: 'yes', meal: 'Chicken',
+    dietary: '', isChild: false, side: 'bride', relationship: 'friend', table: '4', outOfTown: false,
+    invitedTo: { ceremony: true, reception: true, rehearsal: false, welcome: true, brunch: false },
+    saveTheDateSent: true, invitationSent: true, thankYouSent: false, giftReceived: false, gift: '', notes: '',
+    party: [
+      { id: 'g1p1', name: 'Riley Lee', email: '', phone: '', address: '', useForMailing: false, isChild: false, meal: 'Beef', dietary: 'No nuts' },
+    ],
+  },
+  {
+    id: 'g2', name: 'Taylor Brooks', email: '', phone: '', address: '', useForMailing: true,
+    rsvp: 'pending', meal: '', dietary: '', isChild: false, side: 'groom', relationship: 'friend',
+    table: '', outOfTown: true, invitedTo: { ceremony: true, reception: true, rehearsal: false, welcome: false, brunch: false },
+    saveTheDateSent: true, invitationSent: false, thankYouSent: false, giftReceived: false, gift: '', notes: 'College roommate', party: [],
+  },
+  {
+    id: 'g3', name: 'Morgan Diaz', email: '', phone: '', address: '', useForMailing: true,
+    rsvp: 'no', meal: '', dietary: '', isChild: false, side: 'bride', relationship: 'family',
+    table: '', outOfTown: true, invitedTo: { ceremony: true, reception: true, rehearsal: true, welcome: false, brunch: false },
+    saveTheDateSent: true, invitationSent: true, thankYouSent: false, giftReceived: true, gift: 'KitchenAid stand mixer', notes: 'Out of town',
+    party: [
+      { id: 'g3p1', name: 'Sam Diaz', email: '', phone: '', address: '', useForMailing: false, isChild: false, meal: '', dietary: '' },
+      { id: 'g3p2', name: 'Ana Diaz', email: '', phone: '', address: '', useForMailing: false, isChild: true, meal: '', dietary: '' },
+      { id: 'g3p3', name: 'Leo Diaz', email: '', phone: '', address: '', useForMailing: false, isChild: true, meal: '', dietary: '' },
+    ],
+  },
 ]
 
 const seedEvents = [
@@ -71,6 +107,44 @@ export const defaultBudget = {
     { id: 'b4', category: 'Flowers', vendor: '', website: '', estimated: 3000, actual: 1200, paidAmount: 0, dueDate: '2026-09-05' },
     { id: 'b5', category: 'Attire', vendor: '', website: '', estimated: 2500, actual: 1800, paidAmount: 1800, dueDate: '' },
   ],
+}
+
+// Upgrade guests to the richer shape (contact info, named party members with
+// their own contact, dietary, seating, events, etiquette + gift tracking).
+function migrateMember(m = {}) {
+  return {
+    id: m.id || crypto.randomUUID(),
+    name: m.name || '', email: m.email || '', phone: m.phone || '', address: m.address || '',
+    useForMailing: !!m.useForMailing, isChild: !!m.isChild, meal: m.meal || '', dietary: m.dietary || '',
+  }
+}
+
+function migrateGuest(g = {}) {
+  let party = Array.isArray(g.party) ? g.party.map(migrateMember) : []
+  // Back-compat: an old numeric partySize becomes (size - 1) blank party members.
+  if (!Array.isArray(g.party) && Number(g.partySize) > 1) {
+    party = Array.from({ length: Number(g.partySize) - 1 }, () => migrateMember())
+  }
+  return {
+    id: g.id || crypto.randomUUID(),
+    name: g.name || '',
+    email: g.email || '', phone: g.phone || '', address: g.address || '',
+    useForMailing: g.useForMailing ?? true,
+    rsvp: g.rsvp || 'pending',
+    meal: g.meal || '', dietary: g.dietary || '', isChild: !!g.isChild,
+    side: g.side || '', relationship: g.relationship || '', table: g.table || '',
+    outOfTown: !!g.outOfTown,
+    invitedTo: { ...defaultInvitedTo, ...(g.invitedTo || {}) },
+    saveTheDateSent: !!g.saveTheDateSent, invitationSent: !!g.invitationSent, thankYouSent: !!g.thankYouSent,
+    giftReceived: !!g.giftReceived, gift: g.gift || '',
+    notes: g.notes || '',
+    party,
+  }
+}
+
+function migrateGuests(guests) {
+  if (!Array.isArray(guests)) return seedGuests
+  return guests.map(migrateGuest)
 }
 
 // Upgrade older line items that used a boolean `paid` to a numeric `paidAmount`.
@@ -94,7 +168,7 @@ function migrateAll(data) {
   const d = data && typeof data === 'object' ? data : {}
   return {
     details: migrateDetails(d.details || defaultDetails),
-    guests: Array.isArray(d.guests) ? d.guests : seedGuests,
+    guests: migrateGuests(d.guests),
     budget: migrateBudget(d.budget || defaultBudget),
     events: Array.isArray(d.events) ? d.events : seedEvents,
     settings: { ...defaultSettings, ...(d.settings || {}) },
@@ -193,7 +267,17 @@ export function useStore(session) {
   const addGuest = (guest) =>
     setState((s) => ({
       ...s,
-      guests: [...s.guests, { id: crypto.randomUUID(), rsvp: 'pending', partySize: 1, meal: '', notes: '', ...guest }],
+      guests: [
+        ...s.guests,
+        {
+          id: crypto.randomUUID(), name: '', email: '', phone: '', address: '', useForMailing: true,
+          rsvp: 'pending', meal: '', dietary: '', isChild: false, side: '', relationship: '', table: '',
+          outOfTown: false, invitedTo: { ...defaultInvitedTo },
+          saveTheDateSent: false, invitationSent: false, thankYouSent: false,
+          giftReceived: false, gift: '', notes: '', party: [],
+          ...guest,
+        },
+      ],
     }))
 
   const updateGuest = (id, patch) =>
@@ -279,13 +363,36 @@ export function budgetStats(budget) {
   return { total, estimated, actual, paid, outstanding, remaining }
 }
 
+// Party size = the primary guest + any named/placeholder party members.
+export function partySize(g) {
+  if (Array.isArray(g?.party)) return 1 + g.party.length
+  return Number(g?.partySize) > 0 ? Number(g.partySize) : 1
+}
+
+// Adults / kids in a party, from the isChild flags (primary + members).
+export function partyAgeBreakdown(g) {
+  const members = Array.isArray(g?.party) ? g.party : []
+  let adults = g?.isChild ? 0 : 1
+  let kids = g?.isChild ? 1 : 0
+  for (const m of members) {
+    if (m.isChild) kids += 1
+    else adults += 1
+  }
+  return { adults, kids }
+}
+
 export function guestStats(guests) {
-  const stat = { invited: 0, attending: 0, declined: 0, pending: 0 }
+  const stat = { invited: 0, attending: 0, declined: 0, pending: 0, adults: 0, kids: 0 }
   for (const g of guests) {
-    stat.invited += g.partySize || 1
-    if (g.rsvp === 'yes') stat.attending += g.partySize || 1
-    else if (g.rsvp === 'no') stat.declined += g.partySize || 1
-    else stat.pending += g.partySize || 1
+    const size = partySize(g)
+    const { adults, kids } = partyAgeBreakdown(g)
+    stat.invited += size
+    if (g.rsvp === 'yes') {
+      stat.attending += size
+      stat.adults += adults
+      stat.kids += kids
+    } else if (g.rsvp === 'no') stat.declined += size
+    else stat.pending += size
   }
   return stat
 }
