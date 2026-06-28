@@ -148,17 +148,34 @@ function guestSystem(details) {
     venueName: details.venueName,
     venueAddress: details.venueAddress,
     dressCode: details.dressCode,
-    registryUrl: details.registryUrl,
     parking: details.parking,
     hotelBlock: details.hotelBlock,
     extraNotes: details.extraNotes,
   }
+  // Registry (only the curated, opted-in fields reach here).
+  const hasRegistry = details.hasRegistry !== false
+  publicDetails.hasRegistry = hasRegistry
+  if (hasRegistry) {
+    if (Array.isArray(details.registries) && details.registries.length) publicDetails.registries = details.registries
+    if (details.stickToRegistry !== undefined) publicDetails.prefersRegistryGifts = !!details.stickToRegistry
+  } else {
+    publicDetails.registryMessage = details.registryMessage || ''
+  }
+  if (details.approxSize !== undefined) publicDetails.approxGuestCount = details.approxSize
+
   return `You are "Hey Girl", a friendly wedding concierge answering questions from WEDDING GUESTS on behalf of the couple.
 Answer warmly and briefly using ONLY the published wedding details below.
 Rules:
 - Never reveal or speculate about budget, private planning notes, vendor pricing, or the full guest list.
 - If a guest asks about something not in the details, say you don't have that info yet and suggest they reach out to the couple directly.
 - Do not collect personal data or make promises on the couple's behalf.
+
+REGISTRY:
+- If hasRegistry is true and "registries" are listed, share them when a guest asks where the couple is registered; link each with Markdown using its name (or the URL if unnamed).
+- If "prefersRegistryGifts" is present and true, you may gently let guests know the couple would especially love gifts from their registry. If "prefersRegistryGifts" is absent, do NOT comment on whether guests should stick to the registry.
+- If hasRegistry is false: if a "registryMessage" is provided, share that message warmly when guests ask about gifts or a registry. If no message is provided, kindly say the couple isn't using a registry and suggest reaching out to them.
+
+WEDDING SIZE: If "approxGuestCount" is present, you may share that approximate number when asked (phrase it loosely, e.g. "around that many guests"). If it is absent, do NOT reveal or guess how many guests are coming — say you don't have that to share and suggest asking the couple.
 
 CALENDAR INVITE: When the guest asks about WHEN the wedding is (date or time) or WHERE it is (venue or location), answer normally, then — only if a wedding date is known — append a fenced code block in EXACTLY this format at the very end:
 \`\`\`heygirl:invite
@@ -178,11 +195,38 @@ const sbAdmin = SB_URL && SB_SERVICE_KEY ? createClient(SB_URL, SB_SERVICE_KEY, 
 
 const PUBLIC_DETAIL_KEYS = [
   'coupleNames', 'date', 'time', 'venueName', 'venueAddress',
-  'dressCode', 'registryUrl', 'parking', 'hotelBlock', 'extraNotes',
+  'dressCode', 'parking', 'hotelBlock', 'extraNotes',
 ]
 function pickPublicDetails(d = {}) {
   const out = {}
   for (const k of PUBLIC_DETAIL_KEYS) if (d[k]) out[k] = d[k]
+  return out
+}
+
+// Approximate number of people invited (primary guest + party members each).
+function approxWeddingSize(state = {}) {
+  const guests = Array.isArray(state.guests) ? state.guests : []
+  let n = 0
+  for (const g of guests) n += 1 + (Array.isArray(g.party) ? g.party.length : 0)
+  return n
+}
+
+// Curated, privacy-respecting payload a guest is allowed to see. Registry links
+// and the wedding size are only included when the couple has opted in.
+function publicGuestPayload(state = {}) {
+  const d = state.details || {}
+  const out = pickPublicDetails(d)
+  const hasRegistry = d.hasRegistry !== false
+  out.hasRegistry = hasRegistry
+  if (hasRegistry) {
+    out.registries = (Array.isArray(d.registries) ? d.registries : [])
+      .filter((r) => r && r.url)
+      .map((r) => ({ name: r.name || '', url: r.url }))
+    if (d.allowStickToRegistryInquiry) out.stickToRegistry = !!d.stickToRegistry
+  } else {
+    out.registryMessage = d.registryMessage || ''
+  }
+  if (d.allowSizeInquiry) out.approxSize = approxWeddingSize(state)
   return out
 }
 
@@ -201,7 +245,7 @@ app.get('/api/guest/:token', async (req, res) => {
       .maybeSingle()
     if (error) throw error
     if (!data) return res.status(404).json({ error: 'This guest link is invalid or has expired.' })
-    res.json({ details: pickPublicDetails(data.data?.details || {}) })
+    res.json({ details: publicGuestPayload(data.data || {}) })
   } catch (err) {
     console.error('Guest fetch error:', err?.message || err)
     res.status(500).json({ error: 'Could not load the wedding info.' })

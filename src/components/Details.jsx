@@ -7,7 +7,6 @@ const FIELDS = [
   ['venueName', 'Venue name'],
   ['venueAddress', 'Venue address'],
   ['dressCode', 'Dress code'],
-  ['registryUrl', 'Registry URL'],
   ['parking', 'Parking'],
   ['hotelBlock', 'Hotel block'],
   ['extraNotes', 'Extra notes (public)', 'textarea'],
@@ -68,6 +67,25 @@ export default function Details({ details, setDetails }) {
           </label>
         ))}
       </div>
+
+      <h3 className="section-title" style={{ marginTop: '20px' }}>Guest permissions</h3>
+      <p className="hint">Choose what Hey Girl is allowed to share when guests ask. Both are off by default.</p>
+      <label className="ck">
+        <input
+          type="checkbox"
+          checked={!!details.allowSizeInquiry}
+          onChange={(e) => setDetails({ ...details, allowSizeInquiry: e.target.checked })}
+        />
+        Allow guests to inquire about approximate wedding size?
+      </label>
+      <label className="ck" style={{ marginTop: '10px' }}>
+        <input
+          type="checkbox"
+          checked={!!details.allowStickToRegistryInquiry}
+          onChange={(e) => setDetails({ ...details, allowStickToRegistryInquiry: e.target.checked })}
+        />
+        Allow guests to inquire if the couple prefers that guests stick to the registry items?
+      </label>
     </div>
   )
 }

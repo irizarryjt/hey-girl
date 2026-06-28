@@ -52,6 +52,23 @@ Just push to GitHub — Render auto-deploys every push to `main`:
 git add -A && git commit -m "Update X" && git push
 ```
 
+## Password reset (Supabase config)
+
+The login screen offers a "Email me a password reset link" button after a failed
+sign-in, and shows a "Set a new password" screen when the user returns via that
+link. For this to work in production, configure Supabase:
+
+1. **Allowed redirect URL.** In the Supabase dashboard → **Authentication → URL
+   Configuration**, add your app's reset return URL to **Redirect URLs**:
+   `https://<your-render-url>/app/` (and your custom domain's `/app/` if you add one).
+   The reset link bounces if this isn't allowed.
+2. **Email sending.** Supabase's built-in email works for testing but is rate-limited.
+   For production, set up SMTP under **Authentication → Emails / SMTP** so reset
+   (and signup-confirmation) emails actually deliver.
+3. The link itself is sent by `resetPassword()` in `src/lib/auth.js` with
+   `redirectTo` set to `${location.origin}/app/` — no code change needed when the
+   domain changes, but the URL above must be on Supabase's allow-list.
+
 ## Notes
 
 - **Free tier sleeps.** After ~15 min idle the service spins down; the next visit

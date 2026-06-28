@@ -19,6 +19,14 @@ export const defaultDetails = {
   parking: 'Free lot on-site, plus valet after 4 PM.',
   hotelBlock: 'Block at the Sonoma Inn under the wedding name.',
   extraNotes: 'Outdoor ceremony, indoor reception. Kid-friendly until 8 PM.',
+  // Registry
+  hasRegistry: true,
+  registries: [{ id: 'r1', name: 'Crate & Barrel', url: 'https://www.crateandbarrel.com/gift-registry' }],
+  registryMessage: '',
+  stickToRegistry: false,
+  // Guest-permission toggles (off by default — couple opts in to share)
+  allowSizeInquiry: false,
+  allowStickToRegistryInquiry: false,
 }
 
 // Build the display name used in headers, the share link, and Hey Girl's context.
@@ -29,24 +37,42 @@ export function composeCoupleNames(d = {}) {
   return [a, b].filter(Boolean).join(' & ')
 }
 
-// Upgrade older saved details (single coupleNames string) to the structured fields.
+// Upgrade older saved details: structured name fields + registry/permission fields.
 function migrateDetails(details) {
-  if (!details) return defaultDetails
-  if (details.partner1First !== undefined || details.partner2First !== undefined) return details
-  const parts = String(details.coupleNames || '').split('&').map((s) => s.trim())
-  const splitName = (full) => {
-    const bits = String(full || '').split(/\s+/).filter(Boolean)
-    return { first: bits.shift() || '', last: bits.join(' ') }
+  let d = details && typeof details === 'object' ? details : defaultDetails
+
+  // Names: split a legacy "A & B" coupleNames into structured fields.
+  if (d.partner1First === undefined && d.partner2First === undefined) {
+    const parts = String(d.coupleNames || '').split('&').map((s) => s.trim())
+    const splitName = (full) => {
+      const bits = String(full || '').split(/\s+/).filter(Boolean)
+      return { first: bits.shift() || '', last: bits.join(' ') }
+    }
+    const p1 = splitName(parts[0])
+    const p2 = splitName(parts[1])
+    d = { ...d, partner1First: p1.first, partner1Last: p1.last, partner2First: p2.first, partner2Last: p2.last }
   }
-  const p1 = splitName(parts[0])
-  const p2 = splitName(parts[1])
+
+  // Registry: normalize links, migrating a legacy single registryUrl into the list.
+  let registries = Array.isArray(d.registries)
+    ? d.registries.map((r) => ({ id: r.id || crypto.randomUUID(), name: r.name || '', url: r.url || '' }))
+    : []
+  if (!registries.length && d.registryUrl) registries = [{ id: crypto.randomUUID(), name: '', url: d.registryUrl }]
+
   return {
-    ...details,
-    partner1First: p1.first,
-    partner1Last: p1.last,
-    partner2First: p2.first,
-    partner2Last: p2.last,
+    ...d,
+    hasRegistry: d.hasRegistry !== false,
+    registries,
+    registryMessage: d.registryMessage || '',
+    stickToRegistry: !!d.stickToRegistry,
+    allowSizeInquiry: !!d.allowSizeInquiry,
+    allowStickToRegistryInquiry: !!d.allowStickToRegistryInquiry,
   }
+}
+
+// A blank registry entry (store/site name + link).
+export function emptyRegistry(extra = {}) {
+  return { id: crypto.randomUUID(), name: '', url: '', ...extra }
 }
 
 // Default set of events a guest can be invited to.

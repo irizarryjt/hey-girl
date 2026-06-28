@@ -10,6 +10,7 @@ import Details from './components/Details.jsx'
 import Budget from './components/Budget.jsx'
 import Calendar from './components/Calendar.jsx'
 import Share from './components/Share.jsx'
+import Registry from './components/Registry.jsx'
 import Faq from './components/Faq.jsx'
 import Login from './components/Login.jsx'
 
@@ -30,6 +31,7 @@ const TABS = [
   { id: 'guests', label: '🎟️ Guests', name: 'Guests' },
   { id: 'budget', label: '💰 Budget', name: 'Budget' },
   { id: 'details', label: '📋 Shared Details', name: 'Shared Details' },
+  { id: 'registry', label: '🎁 Registry', name: 'Registry' },
   { id: 'share', label: '🔗 Share', name: 'Share' },
   { id: 'guestmode', label: '👀 Guest View', name: 'Guest View' },
   { id: 'faq', label: '❓ FAQ', name: 'FAQ' },
@@ -220,6 +222,8 @@ function CoupleApp() {
         )}
 
         {tab === 'details' && <Details details={store.details} setDetails={store.setDetails} />}
+
+        {tab === 'registry' && <Registry details={store.details} setDetails={store.setDetails} onAskHeyGirl={() => setTab('chat')} />}
 
         {tab === 'share' && <Share details={store.details} shareToken={store.shareToken} />}
 
