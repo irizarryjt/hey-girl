@@ -12,7 +12,7 @@ export default function Faq({ intro }) {
       </div>
 
       <div className="faq-item">
-        <h3>💬 Hey Girl</h3>
+        <h3>💬 Hey Girl Chat</h3>
         <p>
           Your planning bestie. Ask about your timeline, budget, etiquette, vendors, or anything
           wedding related. I know your details, budget, calendar, and guest counts, so my answers
@@ -51,8 +51,9 @@ export default function Faq({ intro }) {
         <h3>📋 Shared Details</h3>
         <p>
           The facts about your wedding — names, date, time, venue, dress code, registry, parking,
-          hotel block. These power your headers, the guest view, and your share link, so keep them
-          up to date.
+          hotel block. <strong>This is your "published data"</strong>: it's exactly what guests can
+          see through your share link and in Guest View. Anything that isn't in Shared Details stays
+          private, so keep this tab up to date.
         </p>
       </div>
 
@@ -60,9 +61,9 @@ export default function Faq({ intro }) {
         <h3>🔗 Share &amp; 👀 Guest View</h3>
         <p>
           Send guests a private link so they can ask me about your wedding instead of texting you.
-          Guests only ever see your published details — your private notes, budget, and full guest
-          list always stay hidden. Use <strong>Guest View</strong> to preview exactly what they'll
-          see.
+          Guests only ever see your published data — that's the info from your <strong>Shared
+          Details</strong> tab. Your private notes, budget, and full guest list always stay hidden.
+          Use <strong>Guest View</strong> to preview exactly what they'll see.
         </p>
       </div>
 
@@ -70,7 +71,8 @@ export default function Faq({ intro }) {
         <h3>Is my information private?</h3>
         <p>
           Yes. Your planning data is tied to your account and saved across your devices. The guest
-          experience is a separate, read-only view limited to the details you choose to publish.
+          experience is a separate, read-only view limited to your published data — the details in
+          your <strong>Shared Details</strong> tab.
         </p>
       </div>
     </div>

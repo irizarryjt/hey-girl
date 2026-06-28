@@ -25,14 +25,14 @@ const COUPLE_INTRO =
   "Congratulations on your engagement! I'm your wedding planning bestie. Ask me about your timeline, budget, etiquette, or anything wedding related. Heads up: everything's filled in with placeholder details right now — a sample couple, budget, guests, and dates — just so you can see how it all works. Update anything in the tabs to make it yours."
 
 const TABS = [
-  { id: 'chat', label: '💬 Hey Girl' },
-  { id: 'calendar', label: '📅 Calendar' },
-  { id: 'guests', label: '🎟️ Guests' },
-  { id: 'budget', label: '💰 Budget' },
-  { id: 'details', label: '📋 Shared Details' },
-  { id: 'share', label: '🔗 Share' },
-  { id: 'guestmode', label: '👀 Guest View' },
-  { id: 'faq', label: '❓ FAQ' },
+  { id: 'chat', label: '💬 Hey Girl Chat', name: 'Hey Girl Chat' },
+  { id: 'calendar', label: '📅 Calendar', name: 'Calendar' },
+  { id: 'guests', label: '🎟️ Guests', name: 'Guests' },
+  { id: 'budget', label: '💰 Budget', name: 'Budget' },
+  { id: 'details', label: '📋 Shared Details', name: 'Shared Details' },
+  { id: 'share', label: '🔗 Share', name: 'Share' },
+  { id: 'guestmode', label: '👀 Guest View', name: 'Guest View' },
+  { id: 'faq', label: '❓ FAQ', name: 'FAQ' },
 ]
 
 function Splash({ text = 'Loading…' }) {
@@ -161,7 +161,7 @@ function CoupleApp() {
       </header>
 
       <main className="content">
-        {tab === 'chat' && (
+        {tab === 'chat' ? (
           <Chat
             mode="couple"
             details={store.details}
@@ -180,9 +180,13 @@ function CoupleApp() {
               'What should I be doing 3 months out?',
             ]}
           />
-        )}
-
-        {tab === 'calendar' && (
+        ) : (
+          <>
+            <div className="tab-header">
+              <h1>{TABS.find((t) => t.id === tab)?.name}</h1>
+            </div>
+            <div className="tab-body">
+              {tab === 'calendar' && (
           <Calendar
             details={store.details}
             events={store.events}
@@ -221,8 +225,9 @@ function CoupleApp() {
         {tab === 'guestmode' && (
           <div className="guestmode-wrap">
             <p className="hint">
-              This is what your <strong>guests</strong> see. Hey Girl answers only from your published details —
-              private notes, budget, and the guest list stay hidden. Use the <strong>Share</strong> tab to send guests their own link.
+              This is what your <strong>guests</strong> see. Hey Girl answers only from your published data —
+              the info in your <strong>Shared Details</strong> tab. Private notes, budget, and the guest list stay
+              hidden. Use the <strong>Share</strong> tab to send guests their own link.
             </p>
             <Chat
               mode="guest"
@@ -231,6 +236,9 @@ function CoupleApp() {
               suggestions={['When and where is it?', "What's the dress code?", 'Is there a hotel block?']}
             />
           </div>
+        )}
+            </div>
+          </>
         )}
       </main>
 
