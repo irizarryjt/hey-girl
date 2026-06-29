@@ -31,8 +31,32 @@ const GUEST_CHAIN = [GUEST_MODEL, ...FALLBACK_MODELS].filter((m, i, a) => a.inde
 const REQUIRE_COUPLE_LOGIN = process.env.REQUIRE_COUPLE_LOGIN !== 'false'
 
 const app = express()
+app.set('trust proxy', 1) // Render sits behind a proxy; trust X-Forwarded-For for req.ip
 app.use(cors())
 app.use(express.json({ limit: '1mb' }))
+
+// --- Simple in-memory per-IP rate limiting -------------------------
+// Fixed-window counter per IP. Good enough for a single instance (free tier);
+// note it resets on restart and isn't shared across instances.
+function makeLimiter({ limit, windowMs, message }) {
+  const hits = new Map()
+  return (req, res, next) => {
+    const ip = req.ip || (req.headers['x-forwarded-for'] || '').split(',')[0].trim() || 'unknown'
+    const now = Date.now()
+    let e = hits.get(ip)
+    if (!e || now > e.resetAt) { e = { count: 0, resetAt: now + windowMs }; hits.set(ip, e) }
+    e.count++
+    if (e.count > limit) {
+      res.set('Retry-After', String(Math.ceil((e.resetAt - now) / 1000)))
+      return res.status(429).json({ error: message || 'Too many requests — please slow down and try again in a moment.' })
+    }
+    if (hits.size > 5000) for (const [k, v] of hits) if (now > v.resetAt) hits.delete(k)
+    next()
+  }
+}
+const chatLimiter = makeLimiter({ limit: 30, windowMs: 60000, message: "Hey Girl's getting a lot of messages right now — give it a minute and try again. 💕" })
+const accessLimiter = makeLimiter({ limit: 12, windowMs: 60000, message: 'Too many attempts — please wait a minute and try again.' })
+const rsvpLimiter = makeLimiter({ limit: 20, windowMs: 60000, message: 'Too many RSVP attempts — please wait a minute and try again.' })
 
 // --- Optional password gate ----------------------------------------
 // If SITE_PASSWORD is set, the whole site (landing, app, and API) is locked
@@ -343,7 +367,7 @@ function findGuestByName(guests, name) {
 }
 
 // Identify the guest (by name) and set or verify their chosen password.
-app.post('/api/guest/:token/access', async (req, res) => {
+app.post('/api/guest/:token/access', accessLimiter, async (req, res) => {
   if (!sbAdmin) return res.status(503).json({ error: 'Guest sharing isn’t set up yet.' })
   try {
     const name = String(req.body?.name || '').trim()
@@ -379,7 +403,7 @@ app.post('/api/guest/:token/access', async (req, res) => {
 })
 
 // Submit or edit an RSVP (re-verifies the guest's password).
-app.post('/api/guest/:token/rsvp', async (req, res) => {
+app.post('/api/guest/:token/rsvp', rsvpLimiter, async (req, res) => {
   if (!sbAdmin) return res.status(503).json({ error: 'Guest sharing isn’t set up yet.' })
   try {
     const name = String(req.body?.name || '').trim()
@@ -404,7 +428,7 @@ app.post('/api/guest/:token/rsvp', async (req, res) => {
   }
 })
 
-app.post('/api/chat', async (req, res) => {
+app.post('/api/chat', chatLimiter, async (req, res) => {
   try {
     const { mode = 'couple', messages = [], details = {}, guestStats = {}, budget = null, events = [], guestContext = null } = req.body || {}
 

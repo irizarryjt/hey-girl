@@ -71,6 +71,11 @@ npm run dev              # Vite on :5173 + Express proxy on :8787
 - OCR for scanned documents / image uploads.
 - Model tier by plan: Sonnet free / Opus paid (needs billing).
 - Vendor manager, per-wedding guest codes, email/SMS RSVP reminders, calendar auto-archive.
+- **Durable rate limiting before a wide public launch.** The per-IP limiter on
+  `/api/chat`, `/api/guest/:token/access`, and `/rsvp` is in-memory, so it's
+  per-instance and resets on restart — fine for the free single-instance setup and
+  small tests, but move it to a shared store (e.g. Redis) or a managed WAF/edge
+  rate limiter if scaling to multiple instances or opening up broadly.
 
 ## Guest RSVP — future hardening (before a large/public deploy)
 The guest RSVP flow today is: open link → guest enters name + a self-chosen
