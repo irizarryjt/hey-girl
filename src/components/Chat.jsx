@@ -113,6 +113,8 @@ export default function Chat({
   guestIdentity = null,
   guestContext = null,
   onRsvpSubmitted,
+  pendingPrompt = null,
+  onPromptConsumed,
 }) {
   // The welcome stays as the first message at the very top of the thread (like a
   // text conversation); it scrolls up out of view as the chat grows. The full
@@ -133,6 +135,15 @@ export default function Chat({
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' })
   }, [messages, busy])
+
+  // A suggested prompt from another tab (e.g. Decisions) — send it once.
+  useEffect(() => {
+    if (pendingPrompt) {
+      send(pendingPrompt)
+      onPromptConsumed?.()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingPrompt])
 
   // text = what we send to Hey Girl; display = what shows in the bubble (defaults to text)
   async function send(text, display) {

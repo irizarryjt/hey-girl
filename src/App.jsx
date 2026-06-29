@@ -154,7 +154,11 @@ function CoupleApp() {
   const [tab, setTab] = useState('chat')
   const [menuOpen, setMenuOpen] = useState(false)
   const [moreOpen, setMoreOpen] = useState(false)
+  const [pendingPrompt, setPendingPrompt] = useState(null)
   const isMobile = useIsMobile()
+
+  // Send a suggested prompt to Hey Girl: stash it, then jump to the chat tab.
+  const askHeyGirl = (prompt) => { setPendingPrompt(prompt); setMoreOpen(false); setMenuOpen(false); setTab('chat') }
 
   // When notifications are on, remind about budget balances due within 3 days.
   useEffect(() => {
@@ -256,6 +260,8 @@ function CoupleApp() {
             notifyEnabled={store.settings.notifyTimeline}
             onToggleNotify={handleToggleNotify}
             intro={COUPLE_INTRO}
+            pendingPrompt={pendingPrompt}
+            onPromptConsumed={() => setPendingPrompt(null)}
             suggestions={[
               "What's left in the flowers budget?",
               'When should I send save-the-dates?',
@@ -321,6 +327,7 @@ function CoupleApp() {
             removeDecision={store.removeDecision}
             addVendor={store.addVendor}
             onGoToVendors={() => setTab('vendors')}
+            onAskHeyGirl={askHeyGirl}
           />
         )}
 
