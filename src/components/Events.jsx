@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { icsForEvents, downloadICS, eventFilename } from '../lib/ics.js'
 
 // For the ceremony, these fields live on `details` (so they also show on the
 // Details tab and to guests). Everything else lives on the wedding event itself.
@@ -20,6 +21,20 @@ export default function Events({ weddingEvents, addWeddingEvent, updateWeddingEv
   const setVal = (ev, field, value) => {
     if (isCeremony(ev) && DETAIL_MAP[field]) setDetails({ ...details, [DETAIL_MAP[field]]: value })
     else updateWeddingEvent(ev.id, { [field]: value })
+  }
+
+  // Build a downloadable calendar event (all-day; time/dress code go in notes).
+  function icsEventFor(ev) {
+    const date = getVal(ev, 'date')
+    if (!date) return null
+    const location = [getVal(ev, 'venueName'), getVal(ev, 'venueAddress')].filter(Boolean).join(', ')
+    const time = getVal(ev, 'time')
+    const notes = [
+      time && `Time: ${time}${ev.endTime ? `–${ev.endTime}` : ''}`,
+      getVal(ev, 'dressCode') && `Dress code: ${getVal(ev, 'dressCode')}`,
+      ev.notes,
+    ].filter(Boolean).join(' · ')
+    return { id: ev.id, title: ev.name || 'Wedding event', date, location, notes }
   }
 
   return (
@@ -52,6 +67,16 @@ export default function Events({ weddingEvents, addWeddingEvent, updateWeddingEv
             <label className="gd-field full"><span>Venue</span><input value={getVal(ev, 'venueName')} onChange={(e) => setVal(ev, 'venueName', e.target.value)} placeholder="Venue name" /></label>
             <label className="gd-field full"><span>Address</span><input value={getVal(ev, 'venueAddress')} onChange={(e) => setVal(ev, 'venueAddress', e.target.value)} placeholder="Street, city, state" /></label>
             <label className="gd-field full"><span>Notes</span><textarea rows="2" value={ev.notes} onChange={(e) => updateWeddingEvent(ev.id, { notes: e.target.value })} placeholder="Anything helpful about this event" /></label>
+            {icsEventFor(ev) && (
+              <button
+                type="button"
+                className="tl-download"
+                onClick={() => { const e = icsEventFor(ev); downloadICS(eventFilename(e), icsForEvents([e])) }}
+                title="Download this event (.ics)"
+              >
+                📥 Add to my calendar
+              </button>
+            )}
           </div>
         ))}
       </div>

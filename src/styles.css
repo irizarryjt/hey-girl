@@ -321,6 +321,8 @@ button:disabled { opacity: .5; cursor: default; }
 .faq-item p { margin: 0; color: var(--ink); font-size: 14px; }
 .faq-item strong { color: var(--rose-deep); }
 
+.cal-events-note { background: var(--blush); border-radius: 10px; padding: 10px 12px; color: var(--rose-deep); }
+
 /* ---- Events ---- */
 .events-list { display: flex; flex-direction: column; gap: 12px; }
 .event-card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 12px; display: flex; flex-direction: column; gap: 10px; }

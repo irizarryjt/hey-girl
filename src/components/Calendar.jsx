@@ -78,6 +78,11 @@ export default function Calendar({ details, events, budget, addEvent, updateEven
         Your wedding day comes from <strong>Details</strong> and payment due dates flow in from <strong>Budget</strong>,
         automatically. Add your own milestones below — or when a date comes up in chat, tap <em>Add to calendar</em>.
       </p>
+      <p className="hint cal-events-note">
+        🎉 For the main events that involve your guests — <strong>rehearsal dinner, ceremony, reception, welcome
+        party, brunch</strong> — use the <strong>Events</strong> tab, where you can add times, venues, dress codes,
+        and download a calendar invite for each.
+      </p>
 
       <form className="add-event" onSubmit={submit}>
         <input
