@@ -1,7 +1,16 @@
+import { supabase, supabaseEnabled } from './supabase.js'
+
 export async function askHeyGirl({ mode, messages, details, guestStats, budget, events, guestContext }) {
+  const headers = { 'Content-Type': 'application/json' }
+  // Couple chat is login-gated server-side; attach the signed-in user's token.
+  if (mode !== 'guest' && supabaseEnabled) {
+    const { data } = await supabase.auth.getSession()
+    const token = data?.session?.access_token
+    if (token) headers.Authorization = `Bearer ${token}`
+  }
   const res = await fetch('/api/chat', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers,
     body: JSON.stringify({ mode, messages, details, guestStats, budget, events, guestContext }),
   })
   if (!res.ok) {

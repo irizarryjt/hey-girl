@@ -22,6 +22,14 @@ const FALLBACK_MODELS = (process.env.FALLBACK_MODELS || process.env.FALLBACK_MOD
 // Full chain (primary first), de-duped.
 const MODEL_CHAIN = [MODEL, ...FALLBACK_MODELS].filter((m, i, a) => a.indexOf(m) === i)
 
+// Guests use a cheaper default (Sonnet) since the guest chat is public; couples
+// keep the primary model (Opus). Override with GUEST_MODEL.
+const GUEST_MODEL = process.env.GUEST_MODEL || 'claude-sonnet-4-6'
+const GUEST_CHAIN = [GUEST_MODEL, ...FALLBACK_MODELS].filter((m, i, a) => a.indexOf(m) === i)
+
+// Require a signed-in account for couple chat (default on). Set to 'false' to disable.
+const REQUIRE_COUPLE_LOGIN = process.env.REQUIRE_COUPLE_LOGIN !== 'false'
+
 const app = express()
 app.use(cors())
 app.use(express.json({ limit: '1mb' }))
@@ -246,7 +254,7 @@ function publicGuestPayload(state = {}) {
 }
 
 app.get('/api/health', (req, res) => {
-  res.json({ ok: true, hasKey: !!apiKey, model: MODEL, modelChain: MODEL_CHAIN, guestSharing: !!sbAdmin })
+  res.json({ ok: true, hasKey: !!apiKey, model: MODEL, modelChain: MODEL_CHAIN, guestModel: GUEST_MODEL, guestModelChain: GUEST_CHAIN, guestSharing: !!sbAdmin })
 })
 
 // Public, read-only: returns ONLY whitelisted wedding details for a share token.
@@ -410,6 +418,19 @@ app.post('/api/chat', async (req, res) => {
       })
     }
 
+    // Couple chat requires a signed-in account (so it can't be called anonymously
+    // once the site-wide SITE_PASSWORD gate is removed). Guests stay open.
+    // Only enforced when Supabase auth is configured; toggle off with
+    // REQUIRE_COUPLE_LOGIN=false.
+    if (mode !== 'guest' && REQUIRE_COUPLE_LOGIN && sbAdmin) {
+      const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '').trim()
+      if (!token) return res.status(401).json({ error: 'Please sign in to chat with Hey Girl.' })
+      const { data: authData, error: authErr } = await sbAdmin.auth.getUser(token)
+      if (authErr || !authData?.user) {
+        return res.status(401).json({ error: 'Your session has expired — please sign in again.' })
+      }
+    }
+
     // Budget is couple-only context; guest mode never receives it.
     const system = mode === 'guest' ? guestSystem(details, guestContext) : coupleSystem(details, guestStats, budget, events)
 
@@ -417,19 +438,21 @@ app.post('/api/chat', async (req, res) => {
       .filter((m) => m && (m.role === 'user' || m.role === 'assistant') && m.content)
       .map((m) => ({ role: m.role, content: String(m.content) }))
 
+    // Couples get the primary (Opus) chain; guests get the cheaper (Sonnet) chain.
+    const chain = mode === 'guest' ? GUEST_CHAIN : MODEL_CHAIN
     // Try each model in the chain; if one is overloaded (529/503), fall through
-    // to the next so the couple still gets a reply. Any other error stops here.
+    // to the next so the user still gets a reply. Any other error stops here.
     let resp
-    for (let i = 0; i < MODEL_CHAIN.length; i++) {
-      const model = MODEL_CHAIN[i]
+    for (let i = 0; i < chain.length; i++) {
+      const model = chain[i]
       try {
         resp = await client.messages.create({ model, max_tokens: 1024, system, messages: cleaned })
         break
       } catch (err) {
         const s = err?.status || err?.statusCode
-        const hasNext = i < MODEL_CHAIN.length - 1
+        const hasNext = i < chain.length - 1
         if ((s === 529 || s === 503) && hasNext) {
-          console.warn(`Model ${model} overloaded (${s}); falling back to ${MODEL_CHAIN[i + 1]}.`)
+          console.warn(`Model ${model} overloaded (${s}); falling back to ${chain[i + 1]}.`)
           continue
         }
         throw err

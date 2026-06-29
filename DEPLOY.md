@@ -69,6 +69,23 @@ link. For this to work in production, configure Supabase:
    `redirectTo` set to `${location.origin}/app/` — no code change needed when the
    domain changes, but the URL above must be on Supabase's allow-list.
 
+## Going public (letting testers / real guests in)
+
+The `SITE_PASSWORD` ("hey") gate is HTTP Basic auth over the **whole** site, so it's
+all-or-nothing — you can't keep it for couples but drop it for guests. To open the
+guest experience, **unset `SITE_PASSWORD`** on Render (removes the gate for everyone).
+
+Couple access stays protected because:
+- Couples must sign in (Supabase) to use the app, and
+- The couple chat endpoint itself now requires a valid login token
+  (`REQUIRE_COUPLE_LOGIN`, default on) — so `/api/chat` in couple mode can't be
+  called anonymously once the gate is off. Set `REQUIRE_COUPLE_LOGIN=false` to disable.
+
+Cost note: with the gate off, the **guest** chat is public. Guests run on
+`GUEST_MODEL` (default `claude-sonnet-4-6`, cheaper) while couples use `CLAUDE_MODEL`
+(Opus). Keep an eye on Anthropic usage while open, and consider rate limiting before
+a wide launch.
+
 ## Notes
 
 - **Free tier sleeps.** After ~15 min idle the service spins down; the next visit
