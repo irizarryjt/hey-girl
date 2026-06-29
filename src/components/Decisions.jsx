@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-export default function Decisions({ decisions, addDecision, updateDecision, removeDecision }) {
+export default function Decisions({ decisions, addDecision, updateDecision, removeDecision, addVendor }) {
   const [label, setLabel] = useState('')
   const doneCount = decisions.filter((d) => d.done).length
 
@@ -9,6 +9,13 @@ export default function Decisions({ decisions, addDecision, updateDecision, remo
     if (!label.trim()) return
     addDecision({ label: label.trim() })
     setLabel('')
+  }
+
+  // Convert a decision into a vendor (e.g. "Makeup artist" → a vendor record).
+  function moveToVendor(d) {
+    if (!window.confirm(`Move "${d.label || 'this item'}" to your Vendors list?\n\nIt will be removed from Decisions and added as a vendor (carrying over its link and notes).`)) return
+    addVendor({ name: d.label, website: d.link || '', notes: d.notes || '', status: 'Researching' })
+    removeDecision(d.id)
   }
 
   return (
@@ -36,6 +43,7 @@ export default function Decisions({ decisions, addDecision, updateDecision, remo
               {d.link && /^https?:\/\//i.test(d.link) && (
                 <a className="chat-link" href={d.link} target="_blank" rel="noreferrer">Open ↗</a>
               )}
+              <button type="button" className="to-vendor" onClick={() => moveToVendor(d)} title="Move to Vendors">→ Vendor</button>
             </div>
             <input className="decision-notes" value={d.notes} onChange={(e) => updateDecision(d.id, { notes: e.target.value })} placeholder="Notes" />
             <button className="del" onClick={() => { if (window.confirm(`Remove "${d.label || 'this item'}"?`)) removeDecision(d.id) }} title="Remove">×</button>

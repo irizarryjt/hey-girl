@@ -317,6 +317,7 @@ function CoupleApp() {
             addDecision={store.addDecision}
             updateDecision={store.updateDecision}
             removeDecision={store.removeDecision}
+            addVendor={store.addVendor}
           />
         )}
 
