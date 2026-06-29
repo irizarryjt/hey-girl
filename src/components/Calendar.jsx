@@ -34,7 +34,7 @@ function fmt(str) {
 const money = (n) =>
   `$${Math.round(Number(n) || 0).toLocaleString('en-US')}`
 
-export default function Calendar({ details, events, budget, addEvent, updateEvent, removeEvent }) {
+export default function Calendar({ details, events, budget, weddingEvents = [], addEvent, updateEvent, removeEvent }) {
   const [title, setTitle] = useState('')
   const [date, setDate] = useState('')
 
@@ -58,7 +58,20 @@ export default function Calendar({ details, events, budget, addEvent, updateEven
       }
     })
 
-  const all = [...(weddingDay ? [weddingDay] : []), ...events, ...payments]
+  // Main events from the Events tab surface here automatically (read-only here).
+  // Skip the ceremony — the wedding-day anchor above already represents it.
+  const mainEvents = (weddingEvents || [])
+    .filter((ev) => ev.key !== 'ceremony' && ev.date)
+    .map((ev) => ({
+      id: `we-${ev.id}`,
+      date: ev.date,
+      title: ev.name,
+      time: ev.time,
+      notes: [ev.dressCode && `Dress code: ${ev.dressCode}`, ev.notes].filter(Boolean).join(' · '),
+      wevent: true,
+    }))
+
+  const all = [...(weddingDay ? [weddingDay] : []), ...mainEvents, ...events, ...payments]
   const sorted = all
     .filter((e) => e.date)
     .sort((a, b) => a.date.localeCompare(b.date))
@@ -97,9 +110,9 @@ export default function Calendar({ details, events, budget, addEvent, updateEven
 
       <ul className="timeline">
         {sorted.map((e) => {
-          const editable = !e.anchor && !e.payment
+          const editable = !e.anchor && !e.payment && !e.wevent
           return (
-            <li key={e.id} className={`tl-item ${e.anchor ? 'anchor' : ''} ${e.payment ? 'payment' : ''}`}>
+            <li key={e.id} className={`tl-item ${e.anchor ? 'anchor' : ''} ${e.payment ? 'payment' : ''} ${e.wevent ? 'wevent' : ''}`}>
               <div className="tl-dot" />
               <div className="tl-body">
                 {editable ? (
@@ -127,7 +140,7 @@ export default function Calendar({ details, events, budget, addEvent, updateEven
                     onChange={(ev) => updateEvent(e.id, { notes: ev.target.value })}
                   />
                 )}
-                {e.payment && <div className="tl-subnote">{e.notes}</div>}
+                {(e.payment || e.wevent) && e.notes && <div className="tl-subnote">{e.notes}</div>}
                 <button
                   type="button"
                   className="tl-download"
@@ -139,6 +152,7 @@ export default function Calendar({ details, events, budget, addEvent, updateEven
               </div>
               {e.anchor && <span className="tl-lock" title="Set on the Details tab">📋</span>}
               {e.payment && <span className="tl-lock" title="From the Budget tab">💰</span>}
+              {e.wevent && <span className="tl-lock" title="From the Events tab">🎉</span>}
               {editable && (
                 <div className="tl-actions">
                   <input

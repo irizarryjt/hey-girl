@@ -285,6 +285,7 @@ function CoupleApp() {
             details={store.details}
             events={store.events}
             budget={store.budget}
+            weddingEvents={store.weddingEvents}
             addEvent={store.addEvent}
             updateEvent={store.updateEvent}
             removeEvent={store.removeEvent}
