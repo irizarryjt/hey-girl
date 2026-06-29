@@ -117,6 +117,42 @@ const seedGuests = [
   },
 ]
 
+export const VENDOR_STATUSES = ['Researching', 'Contacted', 'Booked', 'Declined']
+
+export function emptyVendor(extra = {}) {
+  return { id: crypto.randomUUID(), name: '', type: '', status: 'Researching', website: '', phone: '', email: '', contact: '', notes: '', ...extra }
+}
+
+const seedVendors = [
+  { id: 'v1', name: 'The Rosewood Barn', type: 'Venue', status: 'Booked', website: 'https://example.com/rosewood-barn', phone: '(707) 555-0188', email: 'events@rosewoodbarn.example', contact: 'Dana', notes: 'Ceremony + reception site.' },
+]
+
+export function emptyDecision(extra = {}) {
+  return { id: crypto.randomUUID(), label: '', done: false, link: '', notes: '', ...extra }
+}
+
+// Things couples plan that aren't covered by the other tabs.
+const seedDecisions = [
+  { id: 'd1', label: 'Wedding dress selected', done: false, link: '', notes: '' },
+  { id: 'd2', label: "Partner's attire / suit", done: false, link: '', notes: '' },
+  { id: 'd3', label: 'Hair stylist booked', done: false, link: '', notes: '' },
+  { id: 'd4', label: 'Makeup artist booked', done: false, link: '', notes: '' },
+  { id: 'd5', label: 'Cake / dessert chosen', done: false, link: '', notes: '' },
+  { id: 'd6', label: 'First dance song', done: false, link: '', notes: '' },
+  { id: 'd7', label: 'Music — DJ or band', done: false, link: '', notes: '' },
+  { id: 'd8', label: 'Officiant confirmed', done: false, link: '', notes: '' },
+  { id: 'd9', label: 'Vows written', done: false, link: '', notes: '' },
+  { id: 'd10', label: 'Rings purchased', done: false, link: '', notes: '' },
+  { id: 'd11', label: 'Color palette / theme', done: false, link: '', notes: '' },
+  { id: 'd12', label: 'Invitations & stationery', done: false, link: '', notes: '' },
+  { id: 'd13', label: 'Honeymoon booked', done: false, link: '', notes: '' },
+  { id: 'd14', label: 'Transportation arranged', done: false, link: '', notes: '' },
+  { id: 'd15', label: 'Seating chart', done: false, link: '', notes: '' },
+  { id: 'd16', label: 'Day-of timeline', done: false, link: '', notes: '' },
+  { id: 'd17', label: 'Weather / backup plan', done: false, link: '', notes: '' },
+  { id: 'd18', label: 'Favors / welcome bags', done: false, link: '', notes: '' },
+]
+
 const seedEvents = [
   { id: 'e1', date: '2026-07-10', title: 'Catering tasting', notes: '' },
   { id: 'e2', date: '2026-08-15', title: 'RSVP deadline', notes: 'Chase down stragglers' },
@@ -189,7 +225,16 @@ function migrateBudget(budget) {
 }
 
 function freshState() {
-  return { details: defaultDetails, guests: seedGuests, budget: defaultBudget, events: seedEvents, settings: defaultSettings }
+  return { details: defaultDetails, guests: seedGuests, budget: defaultBudget, events: seedEvents, settings: defaultSettings, vendors: seedVendors, decisions: seedDecisions }
+}
+
+function migrateVendors(vendors) {
+  if (!Array.isArray(vendors)) return seedVendors
+  return vendors.map((v) => ({ ...emptyVendor(), ...v, id: v.id || crypto.randomUUID() }))
+}
+function migrateDecisions(decisions) {
+  if (!Array.isArray(decisions)) return seedDecisions
+  return decisions.map((d) => ({ ...emptyDecision(), ...d, id: d.id || crypto.randomUUID() }))
 }
 
 // Couple names captured at sign-up are stashed here until their wedding row is
@@ -232,6 +277,8 @@ function migrateAll(data) {
     budget: migrateBudget(d.budget || defaultBudget),
     events: Array.isArray(d.events) ? d.events : seedEvents,
     settings: { ...defaultSettings, ...(d.settings || {}) },
+    vendors: migrateVendors(d.vendors),
+    decisions: migrateDecisions(d.decisions),
   }
 }
 
@@ -393,6 +440,20 @@ export function useStore(session) {
       settings: { ...s.settings, notifiedDue: { ...(s.settings.notifiedDue || {}), [key]: true } },
     }))
 
+  const addVendor = (vendor = {}) =>
+    setState((s) => ({ ...s, vendors: [...(s.vendors || []), emptyVendor(vendor)] }))
+  const updateVendor = (id, patch) =>
+    setState((s) => ({ ...s, vendors: (s.vendors || []).map((v) => (v.id === id ? { ...v, ...patch } : v)) }))
+  const removeVendor = (id) =>
+    setState((s) => ({ ...s, vendors: (s.vendors || []).filter((v) => v.id !== id) }))
+
+  const addDecision = (decision = {}) =>
+    setState((s) => ({ ...s, decisions: [...(s.decisions || []), emptyDecision(decision)] }))
+  const updateDecision = (id, patch) =>
+    setState((s) => ({ ...s, decisions: (s.decisions || []).map((d) => (d.id === id ? { ...d, ...patch } : d)) }))
+  const removeDecision = (id) =>
+    setState((s) => ({ ...s, decisions: (s.decisions || []).filter((d) => d.id !== id) }))
+
   return {
     ...state,
     loading,
@@ -410,6 +471,12 @@ export function useStore(session) {
     removeEvent,
     setNotifyTimeline,
     markDueNotified,
+    addVendor,
+    updateVendor,
+    removeVendor,
+    addDecision,
+    updateDecision,
+    removeDecision,
   }
 }
 

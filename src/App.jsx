@@ -11,6 +11,8 @@ import Budget from './components/Budget.jsx'
 import Calendar from './components/Calendar.jsx'
 import Share from './components/Share.jsx'
 import Registry from './components/Registry.jsx'
+import Vendor from './components/Vendor.jsx'
+import Decisions from './components/Decisions.jsx'
 import Faq from './components/Faq.jsx'
 import Login from './components/Login.jsx'
 import GuestGate from './components/GuestGate.jsx'
@@ -43,6 +45,8 @@ const TABS = [
   { id: 'calendar', label: '📅 Calendar', name: 'Calendar', short: '📅 Calendar' },
   { id: 'guests', label: '🎟️ Guests', name: 'Guests', short: '🎟️ Guests' },
   { id: 'budget', label: '💰 Budget', name: 'Budget', short: '💰 Budget' },
+  { id: 'vendors', label: '🤝 Vendors', name: 'Vendors', short: '🤝 Vendors' },
+  { id: 'decisions', label: '✅ Decisions', name: 'Decisions', short: '✅ Decisions' },
   { id: 'details', label: '📋 Shared Details', name: 'Shared Details', short: '📋 Details' },
   { id: 'registry', label: '🎁 Registry', name: 'Registry', short: '🎁 Registry' },
   { id: 'share', label: '🔗 Share', name: 'Share', short: '🔗 Share' },
@@ -293,6 +297,26 @@ function CoupleApp() {
             addBudgetItem={store.addBudgetItem}
             updateBudgetItem={store.updateBudgetItem}
             removeBudgetItem={store.removeBudgetItem}
+          />
+        )}
+
+        {tab === 'vendors' && (
+          <Vendor
+            vendors={store.vendors}
+            addVendor={store.addVendor}
+            updateVendor={store.updateVendor}
+            removeVendor={store.removeVendor}
+            budget={store.budget}
+            events={store.events}
+          />
+        )}
+
+        {tab === 'decisions' && (
+          <Decisions
+            decisions={store.decisions}
+            addDecision={store.addDecision}
+            updateDecision={store.updateDecision}
+            removeDecision={store.removeDecision}
           />
         )}
 

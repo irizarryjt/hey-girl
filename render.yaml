@@ -13,8 +13,8 @@ services:
     envVars:
       - key: ANTHROPIC_API_KEY
         sync: false            # set this secret in the Render dashboard
-      - key: SITE_PASSWORD
-        sync: false            # set this to keep the site private (preview)
+      # SITE_PASSWORD removed — site is public. To re-lock, add it back here or in
+      # the Render dashboard (it gates the whole site behind a browser login).
       - key: VITE_SUPABASE_URL
         sync: false            # Supabase project URL (browser-safe)
       - key: VITE_SUPABASE_ANON_KEY
@@ -24,6 +24,8 @@ services:
       - key: SUPABASE_SERVICE_ROLE_KEY
         sync: false            # SECRET — server only, powers guest links
       - key: CLAUDE_MODEL
-        value: claude-sonnet-4-6
+        value: claude-opus-4-8      # couples use Opus
+      - key: GUEST_MODEL
+        value: claude-sonnet-4-6    # public guest chat uses cheaper Sonnet
       - key: NODE_VERSION
         value: "22"
