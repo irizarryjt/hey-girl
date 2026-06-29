@@ -10,6 +10,7 @@ import BridalParty from './components/BridalParty.jsx'
 import Details from './components/Details.jsx'
 import Budget from './components/Budget.jsx'
 import Calendar from './components/Calendar.jsx'
+import Events from './components/Events.jsx'
 import Share from './components/Share.jsx'
 import Registry from './components/Registry.jsx'
 import Vendor from './components/Vendor.jsx'
@@ -44,6 +45,7 @@ const COUPLE_INTRO =
 const TABS = [
   { id: 'chat', label: '💬 Hey Girl Chat', name: 'Hey Girl Chat', short: '💬 Chat' },
   { id: 'calendar', label: '📅 Calendar', name: 'Calendar', short: '📅 Calendar' },
+  { id: 'events', label: '🎉 Events', name: 'Events', short: '🎉 Events' },
   { id: 'guests', label: '🎟️ Guests', name: 'Guests', short: '🎟️ Guests' },
   { id: 'bridalparty', label: '💐 Bridal Party', name: 'Bridal Party', short: '💐 Party' },
   { id: 'budget', label: '💰 Budget', name: 'Budget', short: '💰 Budget' },
@@ -305,6 +307,17 @@ function CoupleApp() {
             addBudgetItem={store.addBudgetItem}
             updateBudgetItem={store.updateBudgetItem}
             removeBudgetItem={store.removeBudgetItem}
+          />
+        )}
+
+        {tab === 'events' && (
+          <Events
+            weddingEvents={store.weddingEvents}
+            addWeddingEvent={store.addWeddingEvent}
+            updateWeddingEvent={store.updateWeddingEvent}
+            removeWeddingEvent={store.removeWeddingEvent}
+            details={store.details}
+            setDetails={store.setDetails}
           />
         )}
 

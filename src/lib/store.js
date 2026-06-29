@@ -160,6 +160,20 @@ const seedDecisions = [
   { id: 'd18', label: 'Favors / welcome bags', done: false, link: '', notes: '' },
 ]
 
+// Detailed main wedding events (richer than calendar items). The ceremony's
+// shared fields live on `details`, so they populate the Details tab + guest view.
+export function emptyWeddingEvent(extra = {}) {
+  return { id: crypto.randomUUID(), key: '', name: 'New event', date: '', time: '', endTime: '', venueName: '', venueAddress: '', dressCode: '', notes: '', ...extra }
+}
+
+const seedWeddingEvents = [
+  { id: 'we1', key: 'rehearsal', name: 'Rehearsal Dinner', date: '2026-09-18', time: '6:00 PM', endTime: '8:30 PM', venueName: 'Sonoma Bistro', venueAddress: '', dressCode: 'Cocktail', notes: 'Wedding party + close family.' },
+  { id: 'we2', key: 'ceremony', name: 'Wedding Ceremony', date: '', time: '', endTime: '5:00 PM', venueName: '', venueAddress: '', dressCode: '', notes: 'Outdoor ceremony in the garden.' },
+  { id: 'we3', key: 'reception', name: 'Wedding Reception', date: '2026-09-19', time: '5:30 PM', endTime: '11:00 PM', venueName: 'The Rosewood Barn', venueAddress: '1200 Vineyard Ln, Sonoma, CA', dressCode: 'Garden formal', notes: 'Dinner, toasts, and dancing.' },
+  { id: 'we4', key: 'welcome', name: 'Welcome Party', date: '2026-09-18', time: '8:00 PM', endTime: '', venueName: '', venueAddress: '', dressCode: 'Casual', notes: 'Optional — for out-of-town guests.' },
+  { id: 'we5', key: 'brunch', name: 'Day-After Brunch', date: '2026-09-20', time: '10:00 AM', endTime: '', venueName: '', venueAddress: '', dressCode: 'Casual', notes: '' },
+]
+
 const seedEvents = [
   { id: 'e1', date: '2026-07-10', title: 'Catering tasting', notes: '' },
   { id: 'e2', date: '2026-08-15', title: 'RSVP deadline', notes: 'Chase down stragglers' },
@@ -233,7 +247,7 @@ function migrateBudget(budget) {
 }
 
 function freshState() {
-  return { details: defaultDetails, guests: seedGuests, budget: defaultBudget, events: seedEvents, settings: defaultSettings, vendors: seedVendors, decisions: seedDecisions }
+  return { details: defaultDetails, guests: seedGuests, budget: defaultBudget, events: seedEvents, settings: defaultSettings, vendors: seedVendors, decisions: seedDecisions, weddingEvents: seedWeddingEvents }
 }
 
 function migrateVendors(vendors) {
@@ -243,6 +257,10 @@ function migrateVendors(vendors) {
 function migrateDecisions(decisions) {
   if (!Array.isArray(decisions)) return seedDecisions
   return decisions.map((d) => ({ ...emptyDecision(), ...d, id: d.id || crypto.randomUUID() }))
+}
+function migrateWeddingEvents(weddingEvents) {
+  if (!Array.isArray(weddingEvents)) return seedWeddingEvents
+  return weddingEvents.map((e) => ({ ...emptyWeddingEvent(), ...e, id: e.id || crypto.randomUUID() }))
 }
 
 // Couple names captured at sign-up are stashed here until their wedding row is
@@ -287,6 +305,7 @@ function migrateAll(data) {
     settings: { ...defaultSettings, ...(d.settings || {}) },
     vendors: migrateVendors(d.vendors),
     decisions: migrateDecisions(d.decisions),
+    weddingEvents: migrateWeddingEvents(d.weddingEvents),
   }
 }
 
@@ -462,6 +481,13 @@ export function useStore(session) {
   const removeDecision = (id) =>
     setState((s) => ({ ...s, decisions: (s.decisions || []).filter((d) => d.id !== id) }))
 
+  const addWeddingEvent = (event = {}) =>
+    setState((s) => ({ ...s, weddingEvents: [...(s.weddingEvents || []), emptyWeddingEvent(event)] }))
+  const updateWeddingEvent = (id, patch) =>
+    setState((s) => ({ ...s, weddingEvents: (s.weddingEvents || []).map((e) => (e.id === id ? { ...e, ...patch } : e)) }))
+  const removeWeddingEvent = (id) =>
+    setState((s) => ({ ...s, weddingEvents: (s.weddingEvents || []).filter((e) => e.id !== id) }))
+
   return {
     ...state,
     loading,
@@ -485,6 +511,9 @@ export function useStore(session) {
     addDecision,
     updateDecision,
     removeDecision,
+    addWeddingEvent,
+    updateWeddingEvent,
+    removeWeddingEvent,
   }
 }
 
