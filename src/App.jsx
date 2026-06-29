@@ -6,6 +6,7 @@ import { supabaseEnabled } from './lib/supabase.js'
 import { useSession, signOut } from './lib/auth.js'
 import Chat from './components/Chat.jsx'
 import GuestList from './components/GuestList.jsx'
+import BridalParty from './components/BridalParty.jsx'
 import Details from './components/Details.jsx'
 import Budget from './components/Budget.jsx'
 import Calendar from './components/Calendar.jsx'
@@ -44,6 +45,7 @@ const TABS = [
   { id: 'chat', label: '💬 Hey Girl Chat', name: 'Hey Girl Chat', short: '💬 Chat' },
   { id: 'calendar', label: '📅 Calendar', name: 'Calendar', short: '📅 Calendar' },
   { id: 'guests', label: '🎟️ Guests', name: 'Guests', short: '🎟️ Guests' },
+  { id: 'bridalparty', label: '💐 Bridal Party', name: 'Bridal Party', short: '💐 Party' },
   { id: 'budget', label: '💰 Budget', name: 'Budget', short: '💰 Budget' },
   { id: 'vendors', label: '🤝 Vendors', name: 'Vendors', short: '🤝 Vendors' },
   { id: 'decisions', label: '✅ Decisions', name: 'Decisions', short: '✅ Decisions' },
@@ -305,6 +307,8 @@ function CoupleApp() {
             removeBudgetItem={store.removeBudgetItem}
           />
         )}
+
+        {tab === 'bridalparty' && <BridalParty guests={store.guests} updateGuest={store.updateGuest} />}
 
         {tab === 'vendors' && (
           <Vendor

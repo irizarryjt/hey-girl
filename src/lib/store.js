@@ -78,6 +78,12 @@ export function emptyRegistry(extra = {}) {
 // Default set of events a guest can be invited to.
 export const defaultInvitedTo = { ceremony: true, reception: true, rehearsal: false, welcome: false, brunch: false }
 
+// Bridal party roles ('' = not in the party). Shared by the Guests + Bridal Party tabs.
+export const BRIDAL_ROLES = [
+  '', 'Maid of Honor', 'Matron of Honor', 'Best Man', 'Bridesmaid', 'Groomsman',
+  'Flower Girl', 'Ring Bearer', 'Usher', 'Officiant', 'Parent of the couple', 'Other',
+]
+
 // A blank additional party member (plus-ones / family) with their own contact info.
 export function emptyMember(extra = {}) {
   return {

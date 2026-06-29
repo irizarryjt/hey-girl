@@ -1,11 +1,7 @@
 import { useState } from 'react'
-import { guestStats, partySize, emptyMember } from '../lib/store.js'
+import { guestStats, partySize, emptyMember, BRIDAL_ROLES } from '../lib/store.js'
 
 const RSVP = ['pending', 'yes', 'no']
-const BRIDAL_ROLES = [
-  '', 'Maid of Honor', 'Matron of Honor', 'Best Man', 'Bridesmaid', 'Groomsman',
-  'Flower Girl', 'Ring Bearer', 'Usher', 'Officiant', 'Parent of the couple', 'Other',
-]
 const EVENTS = [
   ['ceremony', 'Ceremony'],
   ['reception', 'Reception'],
