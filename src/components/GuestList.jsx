@@ -2,6 +2,10 @@ import { useState } from 'react'
 import { guestStats, partySize, emptyMember } from '../lib/store.js'
 
 const RSVP = ['pending', 'yes', 'no']
+const BRIDAL_ROLES = [
+  '', 'Maid of Honor', 'Matron of Honor', 'Best Man', 'Bridesmaid', 'Groomsman',
+  'Flower Girl', 'Ring Bearer', 'Usher', 'Officiant', 'Parent of the couple', 'Other',
+]
 const EVENTS = [
   ['ceremony', 'Ceremony'],
   ['reception', 'Reception'],
@@ -66,6 +70,7 @@ export default function GuestList({ guests, addGuest, updateGuest, removeGuest }
               <div className="guest-main">
                 <input className="guest-name" value={g.name} onChange={(e) => updateGuest(g.id, { name: e.target.value })} />
                 <div className="guest-meta">
+                  {g.bridalParty && <span className="badge role">{g.bridalParty}</span>}
                   {g.selfReported && <span className="badge">Self-added</span>}
                   {g.rsvpSubmittedAt && <span className="badge alt">RSVP via link</span>}
                   <span className="party-count">Party of {partySize(g)}</span>
@@ -113,6 +118,14 @@ export default function GuestList({ guests, addGuest, updateGuest, removeGuest }
                     </Field>
                     <Field label="Table"><input value={g.table} onChange={(e) => updateGuest(g.id, { table: e.target.value })} placeholder="#" /></Field>
                   </div>
+
+                  <Field label="Bridal party role" full>
+                    <select value={g.bridalParty || ''} onChange={(e) => updateGuest(g.id, { bridalParty: e.target.value })}>
+                      {BRIDAL_ROLES.map((r) => (
+                        <option key={r} value={r}>{r || 'Not in the bridal party'}</option>
+                      ))}
+                    </select>
+                  </Field>
 
                   <Field label="Dietary restrictions / allergies" full>
                     <input value={g.dietary} onChange={(e) => updateGuest(g.id, { dietary: e.target.value })} placeholder="e.g. gluten-free, nut allergy" />

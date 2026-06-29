@@ -92,6 +92,7 @@ const seedGuests = [
     id: 'g1', name: 'Jordan Lee', email: 'jordan@example.com', phone: '(555) 200-1010',
     address: '14 Maple St, Austin, TX 78701', useForMailing: true, rsvp: 'yes', meal: 'Chicken',
     dietary: '', isChild: false, side: 'bride', relationship: 'friend', table: '4', outOfTown: false,
+    bridalParty: 'Maid of Honor',
     invitedTo: { ceremony: true, reception: true, rehearsal: false, welcome: true, brunch: false },
     saveTheDateSent: true, invitationSent: true, thankYouSent: false, giftReceived: false, gift: '', notes: '',
     party: [
@@ -198,6 +199,7 @@ function migrateGuest(g = {}) {
     rsvp: g.rsvp || 'pending',
     meal: g.meal || '', dietary: g.dietary || '', isChild: !!g.isChild,
     side: g.side || '', relationship: g.relationship || '', table: g.table || '',
+    bridalParty: g.bridalParty || '',
     outOfTown: !!g.outOfTown,
     invitedTo: { ...defaultInvitedTo, ...(g.invitedTo || {}) },
     saveTheDateSent: !!g.saveTheDateSent, invitationSent: !!g.invitationSent, thankYouSent: !!g.thankYouSent,
@@ -380,7 +382,7 @@ export function useStore(session) {
         {
           id: crypto.randomUUID(), name: '', email: '', phone: '', address: '', useForMailing: true,
           rsvp: 'pending', meal: '', dietary: '', isChild: false, side: '', relationship: '', table: '',
-          outOfTown: false, invitedTo: { ...defaultInvitedTo },
+          bridalParty: '', outOfTown: false, invitedTo: { ...defaultInvitedTo },
           saveTheDateSent: false, invitationSent: false, thankYouSent: false,
           giftReceived: false, gift: '', notes: '', party: [],
           ...guest,
