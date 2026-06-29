@@ -38,9 +38,20 @@ export default function Calendar({ details, events, budget, weddingEvents = [], 
   const [title, setTitle] = useState('')
   const [date, setDate] = useState('')
 
-  // The wedding day is derived from the Details tab — always present, not editable here.
+  // The wedding day = the ceremony event (its shared date/time/dress code live on
+  // Details). Shown here, not editable; edit it on the Events or Details tab.
+  const ceremony = (weddingEvents || []).find((ev) => ev.key === 'ceremony')
   const weddingDay = details?.date
-    ? { id: '__wedding__', date: details.date, title: `${details.coupleNames || 'The'} wedding 💍`, time: details.time, anchor: true }
+    ? {
+        id: '__wedding__',
+        date: details.date,
+        title: ceremony ? (ceremony.name || 'Wedding Ceremony') : `${details.coupleNames || 'The'} wedding 💍`,
+        time: details.time,
+        notes: ceremony
+          ? ['Automatically shared in the Details section.', details.dressCode && `Dress code: ${details.dressCode}`, ceremony.notes].filter(Boolean).join(' · ')
+          : '',
+        anchor: true,
+      }
     : null
 
   // Payment due dates flow in automatically from the Budget tab (read-only here).
@@ -140,7 +151,7 @@ export default function Calendar({ details, events, budget, weddingEvents = [], 
                     onChange={(ev) => updateEvent(e.id, { notes: ev.target.value })}
                   />
                 )}
-                {(e.payment || e.wevent) && e.notes && <div className="tl-subnote">{e.notes}</div>}
+                {(e.payment || e.wevent || e.anchor) && e.notes && <div className="tl-subnote">{e.notes}</div>}
                 <button
                   type="button"
                   className="tl-download"
