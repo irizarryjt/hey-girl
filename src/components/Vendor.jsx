@@ -4,7 +4,7 @@ import { VENDOR_STATUSES } from '../lib/store.js'
 const money = (n) => `$${Math.round(Number(n) || 0).toLocaleString('en-US')}`
 const norm = (s) => String(s || '').trim().toLowerCase()
 
-export default function Vendor({ vendors, addVendor, updateVendor, removeVendor, budget, events }) {
+export default function Vendor({ vendors, addVendor, updateVendor, removeVendor, addDecision, onGoToDecisions, budget, events }) {
   const [name, setName] = useState('')
   const [type, setType] = useState('')
   const items = budget?.items || []
@@ -15,6 +15,14 @@ export default function Vendor({ vendors, addVendor, updateVendor, removeVendor,
     addVendor({ name: name.trim(), type: type.trim() })
     setName('')
     setType('')
+  }
+
+  // Send a vendor back to the Decisions list.
+  function moveToDecision(v) {
+    if (!window.confirm(`Move "${v.name || 'this vendor'}" back to your Decisions list?\n\nIt will be removed from Vendors and added as a decision (carrying over its website and notes).`)) return
+    addDecision({ label: v.name, link: v.website || '', notes: v.notes || '' })
+    removeVendor(v.id)
+    onGoToDecisions?.()
   }
 
   // Vendor names that appear in the budget but aren't in the vendor list yet.
@@ -108,9 +116,12 @@ export default function Vendor({ vendors, addVendor, updateVendor, removeVendor,
                     <span>{evs.map((e) => `${e.date} — ${e.title}`).join(' · ')}</span>
                   </div>
                 )}
-                {v.website && /^https?:\/\//i.test(v.website) && (
-                  <a className="chat-link" href={v.website} target="_blank" rel="noreferrer">Visit website ↗</a>
-                )}
+                <div className="vendor-actions">
+                  {v.website && /^https?:\/\//i.test(v.website) && (
+                    <a className="chat-link" href={v.website} target="_blank" rel="noreferrer">Visit website ↗</a>
+                  )}
+                  <button type="button" className="to-decision" onClick={() => moveToDecision(v)} title="Move back to Decisions">→ Decision</button>
+                </div>
               </div>
 
               <button className="del" onClick={() => { if (window.confirm(`Remove ${v.name || 'this vendor'}?`)) removeVendor(v.id) }} title="Remove">×</button>

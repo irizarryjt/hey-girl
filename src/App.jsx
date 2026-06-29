@@ -306,6 +306,8 @@ function CoupleApp() {
             addVendor={store.addVendor}
             updateVendor={store.updateVendor}
             removeVendor={store.removeVendor}
+            addDecision={store.addDecision}
+            onGoToDecisions={() => setTab('decisions')}
             budget={store.budget}
             events={store.events}
           />
@@ -318,6 +320,7 @@ function CoupleApp() {
             updateDecision={store.updateDecision}
             removeDecision={store.removeDecision}
             addVendor={store.addVendor}
+            onGoToVendors={() => setTab('vendors')}
           />
         )}
 

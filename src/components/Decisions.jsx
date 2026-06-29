@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-export default function Decisions({ decisions, addDecision, updateDecision, removeDecision, addVendor }) {
+export default function Decisions({ decisions, addDecision, updateDecision, removeDecision, addVendor, onGoToVendors }) {
   const [label, setLabel] = useState('')
   const doneCount = decisions.filter((d) => d.done).length
 
@@ -16,6 +16,7 @@ export default function Decisions({ decisions, addDecision, updateDecision, remo
     if (!window.confirm(`Move "${d.label || 'this item'}" to your Vendors list?\n\nIt will be removed from Decisions and added as a vendor (carrying over its link and notes).`)) return
     addVendor({ name: d.label, website: d.link || '', notes: d.notes || '', status: 'Researching' })
     removeDecision(d.id)
+    onGoToVendors?.()
   }
 
   return (
