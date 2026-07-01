@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { icsForEvents, downloadICS, eventFilename } from '../lib/ics.js'
+import SaveButton from './SaveButton.jsx'
 
 // Parse an ISO date (YYYY-MM-DD) as a local date, avoiding timezone drift.
 function parseDate(str) {
@@ -173,6 +174,7 @@ export default function Calendar({ details, events, budget, weddingEvents = [], 
                     title="Change date"
                   />
                   <button className="del small" onClick={() => { if (window.confirm(`Delete "${e.title || 'this event'}" from your calendar?`)) removeEvent(e.id) }} title="Remove">×</button>
+                  <SaveButton />
                 </div>
               )}
             </li>

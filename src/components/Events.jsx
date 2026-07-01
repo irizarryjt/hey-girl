@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { icsForEvents, downloadICS, eventFilename } from '../lib/ics.js'
+import SaveButton from './SaveButton.jsx'
 
 // For the ceremony, these fields live on `details` (so they also show on the
 // Details tab and to guests). Everything else lives on the wedding event itself.
@@ -91,6 +92,7 @@ export default function Events({ weddingEvents, addWeddingEvent, updateWeddingEv
                 📥 Add to my calendar
               </button>
             )}
+            <div className="entry-save"><SaveButton /></div>
           </div>
         ))}
       </div>

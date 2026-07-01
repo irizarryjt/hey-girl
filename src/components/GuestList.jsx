@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { guestStats, partySize, emptyMember, BRIDAL_ROLES } from '../lib/store.js'
+import SaveButton from './SaveButton.jsx'
 
 const RSVP = ['pending', 'yes', 'no']
 const EVENTS = [
@@ -206,6 +207,7 @@ export default function GuestList({ guests, addGuest, updateGuest, removeGuest }
                 </div>
               )}
 
+              <div className="entry-save"><SaveButton /></div>
               <button
                 className="del"
                 onClick={() => { if (window.confirm(`Remove ${g.name || 'this guest'} and their whole party from your list?`)) removeGuest(g.id) }}

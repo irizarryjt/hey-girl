@@ -1,4 +1,5 @@
 import { budgetStats } from '../lib/store.js'
+import SaveButton from './SaveButton.jsx'
 
 const money = (n) =>
   (Number(n) || 0).toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })
@@ -111,7 +112,10 @@ export default function Budget({ budget, setBudgetTotal, addBudgetItem, updateBu
                 onChange={(e) => updateBudgetItem(it.id, { dueDate: e.target.value })}
                 title="Payment due date"
               />
-              <button className="del small" onClick={() => removeBudgetItem(it.id)} title="Remove">×</button>
+              <div className="brow-actions">
+                <SaveButton compact />
+                <button className="del small" onClick={() => removeBudgetItem(it.id)} title="Remove">×</button>
+              </div>
             </div>
           )
         })}
