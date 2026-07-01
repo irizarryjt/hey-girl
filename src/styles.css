@@ -361,6 +361,20 @@ button:disabled { opacity: .5; cursor: default; }
 .tabbar { display: flex; border-top: 1px solid var(--line); background: var(--card); padding-bottom: env(safe-area-inset-bottom); }
 .tabbar button { flex: 1; border: none; background: transparent; padding: 12px 4px; font-size: 13px; color: var(--muted); cursor: pointer; }
 .tabbar button.active { color: var(--rose-deep); font-weight: 700; box-shadow: inset 0 2px 0 var(--gold); }
+/* The "••• More" tab styled like the hamburger button (rose gradient pill). */
+.tabbar button.tab-more {
+  flex: 0 0 auto;
+  align-self: center;
+  background: linear-gradient(135deg, var(--rose), var(--rose-deep));
+  color: #fff;
+  border-radius: 10px;
+  font-weight: 700;
+  margin: 0 8px;
+  padding: 8px 12px;
+  box-shadow: 0 1px 4px rgba(58, 43, 43, 0.2);
+}
+.tabbar button.tab-more.active { color: #fff; box-shadow: 0 1px 4px rgba(58, 43, 43, 0.2); }
+.tabbar button.tab-more:hover { filter: brightness(1.06); }
 
 /* Mobile "•••" overflow popup (tabs that don't fit the bottom bar) */
 .more-backdrop { position: fixed; inset: 0; z-index: 60; background: transparent; }
@@ -494,7 +508,7 @@ button:disabled { opacity: .5; cursor: default; }
   .form-grid { grid-template-columns: 1fr; }
   .auth-names { grid-template-columns: 1fr; }
   .tabbar button { font-size: 11px; padding: 12px 2px; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .tabbar button.tab-more { flex: 0 0 auto; padding: 12px 8px; }
+  .tabbar button.tab-more { padding: 8px 10px; }
 
   /* Stack the couple's name + date under the "Hey Girl!" logo so it's fully readable */
   .topbar { align-items: flex-start; }
