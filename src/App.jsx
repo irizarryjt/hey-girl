@@ -18,6 +18,7 @@ import Stationery from './components/Stationery.jsx'
 import Vendor from './components/Vendor.jsx'
 import Decisions from './components/Decisions.jsx'
 import Faq from './components/Faq.jsx'
+import Home from './components/Home.jsx'
 import Login from './components/Login.jsx'
 import GuestGate from './components/GuestGate.jsx'
 
@@ -238,10 +239,13 @@ function CoupleApp() {
       <header className="topbar">
         <div className="brand">
           <span className="logo">Hey&nbsp;Girl!</span>
-          <span className="tagline">
-            {store.details.coupleNames}
-            {store.details.date ? ` · ${prettyDate(store.details.date)}` : ''}
-          </span>
+          <div className="brand-sub">
+            <span className="tagline">
+              {store.details.coupleNames}
+              {store.details.date ? ` · ${prettyDate(store.details.date)}` : ''}
+            </span>
+            <button className="home-btn" onClick={() => setTab('home')} title="Home">🏠 Home</button>
+          </div>
         </div>
         <div className="topbar-actions">
           <a className="back-link" href="/">← site</a>
@@ -300,6 +304,8 @@ function CoupleApp() {
               'What should I be doing 3 months out?',
             ]}
           />
+        ) : tab === 'home' ? (
+          <Home details={store.details} onAskHeyGirl={askHeyGirl} />
         ) : (
           <>
             {tab !== 'share' && (
