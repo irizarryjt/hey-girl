@@ -48,20 +48,20 @@ const COUPLE_INTRO = [
 ]
 
 const TABS = [
-  { id: 'chat', label: '💬 Hey Girl Chat', name: 'Hey Girl Chat', short: '💬 Chat' },
-  { id: 'calendar', label: '📅 Calendar', name: 'Calendar', short: '📅 Calendar' },
-  { id: 'events', label: '🎉 Events', name: 'Events', short: '🎉 Events' },
-  { id: 'guests', label: '🎟️ Guests', name: 'Guests', short: '🎟️ Guests' },
-  { id: 'bridalparty', label: '💐 Bridal Party', name: 'Bridal Party', short: '💐 Party' },
-  { id: 'budget', label: '💰 Budget', name: 'Budget', short: '💰 Budget' },
-  { id: 'vendors', label: '🤝 Vendors', name: 'Vendors', short: '🤝 Vendors' },
-  { id: 'decisions', label: '✅ Decisions', name: 'Decisions', short: '✅ Decisions' },
-  { id: 'details', label: '📋 Shared Details', name: 'Shared Details', short: '📋 Details' },
-  { id: 'registry', label: '🎁 Registry', name: 'Registry', short: '🎁 Registry' },
-  { id: 'honeymoon', label: '🌴 Honeymoon', name: 'Honeymoon', short: '🌴 Honeymoon' },
-  { id: 'share', label: '🔗 Share', name: 'Share', short: '🔗 Share' },
-  { id: 'guestmode', label: '👀 Guest View', name: 'Guest View', short: '👀 Guests' },
-  { id: 'faq', label: '❓ FAQ', name: 'FAQ', short: '❓ FAQ' },
+  { id: 'chat', label: '💬 Hey Girl Chat', name: 'Hey Girl Chat', short: '💬 Chat', icon: '💬' },
+  { id: 'calendar', label: '📅 Calendar', name: 'Calendar', short: '📅 Calendar', icon: '📅' },
+  { id: 'events', label: '🎉 Events', name: 'Events', short: '🎉 Events', icon: '🎉' },
+  { id: 'guests', label: '🎟️ Guests', name: 'Guests', short: '🎟️ Guests', icon: '🎟️' },
+  { id: 'bridalparty', label: '💐 Bridal Party', name: 'Bridal Party', short: '💐 Party', icon: '💐' },
+  { id: 'budget', label: '💰 Budget', name: 'Budget', short: '💰 Budget', icon: '💰' },
+  { id: 'vendors', label: '🤝 Vendors', name: 'Vendors', short: '🤝 Vendors', icon: '🤝' },
+  { id: 'decisions', label: '✅ Decisions', name: 'Decisions', short: '✅ Decisions', icon: '✅' },
+  { id: 'details', label: '📋 Shared Details', name: 'Shared Details', short: '📋 Details', icon: '📋' },
+  { id: 'registry', label: '🎁 Registry', name: 'Registry', short: '🎁 Registry', icon: '🎁' },
+  { id: 'honeymoon', label: '🌴 Honeymoon', name: 'Honeymoon', short: '🌴 Honeymoon', icon: '🌴' },
+  { id: 'share', label: '🔗 Share', name: 'Share', short: '🔗 Share', icon: '🔗' },
+  { id: 'guestmode', label: '👀 Guest View', name: 'Guest View', short: '👀 Guests', icon: '👀' },
+  { id: 'faq', label: '❓ FAQ', name: 'FAQ', short: '❓ FAQ', icon: '❓' },
 ]
 
 // On phones, only these show in the bottom bar; the rest live under a "•••" tab.
@@ -165,6 +165,7 @@ function CoupleApp() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [moreOpen, setMoreOpen] = useState(false)
   const [pendingPrompt, setPendingPrompt] = useState(null)
+  const [chatMessages, setChatMessages] = useState([]) // persists chat for the session
   const isMobile = useIsMobile()
 
   // Send a suggested prompt to Hey Girl: stash it, then jump to the chat tab.
@@ -270,6 +271,8 @@ function CoupleApp() {
             notifyEnabled={store.settings.notifyTimeline}
             onToggleNotify={handleToggleNotify}
             intro={COUPLE_INTRO}
+            messages={chatMessages}
+            setMessages={setChatMessages}
             pendingPrompt={pendingPrompt}
             onPromptConsumed={() => setPendingPrompt(null)}
             suggestions={[
@@ -385,38 +388,18 @@ function CoupleApp() {
         )}
       </main>
 
-      {isMobile && moreOpen && (
-        <>
-          <div className="more-backdrop" onClick={() => setMoreOpen(false)} />
-          <div className="more-popup">
-            {TABS.filter((t) => !MOBILE_PRIMARY.includes(t.id)).map((t) => (
-              <button
-                key={t.id}
-                className={`more-item ${tab === t.id ? 'active' : ''}`}
-                onClick={() => { setTab(t.id); setMoreOpen(false) }}
-              >
-                {t.label}
-              </button>
-            ))}
-          </div>
-        </>
-      )}
-
       <nav className="tabbar">
-        {(isMobile ? TABS.filter((t) => MOBILE_PRIMARY.includes(t.id)) : TABS).map((t) => (
-          <button key={t.id} className={tab === t.id ? 'active' : ''} onClick={() => { setMoreOpen(false); setTab(t.id) }}>
-            {isMobile ? (t.short || t.label) : t.label}
+        {TABS.map((t) => (
+          <button
+            key={t.id}
+            className={`${tab === t.id ? 'active' : ''} ${isMobile && t.id === 'chat' ? 'tab-chat' : ''} ${isMobile && t.id !== 'chat' ? 'icon-only' : ''}`}
+            onClick={() => setTab(t.id)}
+            title={t.name}
+            aria-label={t.name}
+          >
+            {isMobile ? (t.id === 'chat' ? t.short : t.icon) : t.label}
           </button>
         ))}
-        {isMobile && (
-          <button
-            className={!MOBILE_PRIMARY.includes(tab) ? 'active' : ''}
-            onClick={() => setMoreOpen((o) => !o)}
-            aria-label="More tabs"
-          >
-            ••• More
-          </button>
-        )}
       </nav>
     </div>
   )

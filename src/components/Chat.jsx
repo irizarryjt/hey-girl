@@ -122,10 +122,14 @@ export default function Chat({
   onRsvpSubmitted,
   pendingPrompt = null,
   onPromptConsumed,
+  messages: messagesProp,
+  setMessages: setMessagesProp,
 }) {
-  // Bubbles are revealed one at a time (see revealSequential). The welcome also
-  // lives permanently in the FAQ tab.
-  const [messages, setMessages] = useState([])
+  // Messages can be controlled by the parent (couple chat) so they persist across
+  // tab switches for the session; otherwise kept locally (guest chat).
+  const [localMessages, setLocalMessages] = useState([])
+  const messages = messagesProp ?? localMessages
+  const setMessages = setMessagesProp ?? setLocalMessages
   const [input, setInput] = useState('')
   const [busy, setBusy] = useState(false)
   const [added, setAdded] = useState({})
@@ -134,10 +138,11 @@ export default function Chat({
   const scrollRef = useRef(null)
   const fileRef = useRef(null)
   const mountedRef = useRef(true)
+  const welcomeStartedRef = useRef(false)
   // "Started" = the couple has sent at least one message.
   const started = messages.some((m) => m.role === 'user')
 
-  useEffect(() => () => { mountedRef.current = false }, [])
+  useEffect(() => { mountedRef.current = true; return () => { mountedRef.current = false } }, [])
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' })
@@ -161,9 +166,11 @@ export default function Chat({
     setTimeout(step, 450)
   }
 
-  // Reveal the welcome bubbles one at a time on mount (unless a prompt is pending).
+  // Reveal the welcome bubbles once, only when the conversation is empty. Persisted
+  // messages mean it won't replay after the user has started chatting this session.
   useEffect(() => {
-    if (!intro || pendingPrompt) return
+    if (!intro || pendingPrompt || welcomeStartedRef.current || messages.length > 0) return
+    welcomeStartedRef.current = true
     revealSequential(Array.isArray(intro) ? intro : [intro])
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -253,6 +260,7 @@ export default function Chat({
     <div className="chat">
       <div className="chat-scroll" ref={scrollRef}>
         {messages.map((m, i) => {
+          const text = m.display || m.content || ''
           const prev = messages[i - 1]
           const next = messages[i + 1]
           const cont = prev && prev.role === m.role
@@ -260,7 +268,7 @@ export default function Chat({
           return (
             <div key={i} className={`msg-row ${cont ? 'tight' : ''}`}>
               <div className={`bubble ${m.role} ${cont ? 'cont' : ''} ${last ? '' : 'no-tail'}`}>
-                {richText(m.display || m.content)}
+                {richText(text)}
               </div>
               {m.events && m.events.length > 0 && (
                 <div className="ev-suggest">
