@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { guestStats, partySize, emptyMember, BRIDAL_ROLES } from '../lib/store.js'
+import { guestsToCsv, downloadCsv } from '../lib/csv.js'
 import SaveButton from './SaveButton.jsx'
 
 const RSVP = ['pending', 'yes', 'no']
@@ -52,6 +53,12 @@ export default function GuestList({ guests, addGuest, updateGuest, removeGuest }
         <Stat label="Pending" value={stats.pending} tone="warn" />
       </div>
       <p className="guest-substat">{stats.adults} adults · {stats.kids} kids attending</p>
+
+      <div className="guest-tools">
+        <button type="button" className="add-member" onClick={() => downloadCsv('wedding-guest-list.csv', guestsToCsv(guests))}>
+          ⬇ Export guest list (CSV)
+        </button>
+      </div>
 
       <form className="addguest" onSubmit={submit}>
         <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Guest name" />

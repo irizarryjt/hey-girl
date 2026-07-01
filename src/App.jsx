@@ -14,6 +14,7 @@ import Events from './components/Events.jsx'
 import Share from './components/Share.jsx'
 import Registry from './components/Registry.jsx'
 import Honeymoon from './components/Honeymoon.jsx'
+import Stationery from './components/Stationery.jsx'
 import Vendor from './components/Vendor.jsx'
 import Decisions from './components/Decisions.jsx'
 import Faq from './components/Faq.jsx'
@@ -61,6 +62,7 @@ const TABS = [
   { id: 'budget', label: '💰 Budget', name: 'Budget', short: '💰 Budget', icon: '💰' },
   { id: 'vendors', label: '🤝 Vendors', name: 'Vendors', short: '🤝 Vendors', icon: '🤝' },
   { id: 'decisions', label: '✅ Decisions', name: 'Decisions', short: '✅ Decisions', icon: '✅' },
+  { id: 'stationery', label: '✉️ Invitations', name: 'Invitations & Stationery', short: '✉️ Invites', icon: '✉️' },
   { id: 'details', label: '📋 Shared Details', name: 'Shared Details', short: '📋 Details', icon: '📋' },
   { id: 'registry', label: '🎁 Registry', name: 'Registry', short: '🎁 Registry', icon: '🎁' },
   { id: 'honeymoon', label: '🌴 Honeymoon', name: 'Honeymoon', short: '🌴 Honeymoon', icon: '🌴' },
@@ -381,6 +383,8 @@ function CoupleApp() {
         {tab === 'registry' && <Registry details={store.details} setDetails={store.setDetails} onAskHeyGirl={() => setTab('chat')} />}
 
         {tab === 'honeymoon' && <Honeymoon honeymoon={store.honeymoon} setHoneymoon={store.setHoneymoon} />}
+
+        {tab === 'stationery' && <Stationery stationery={store.stationery} setStationery={store.setStationery} />}
 
         {tab === 'share' && <Share details={store.details} shareToken={store.shareToken} approxSize={stats.invited} />}
 

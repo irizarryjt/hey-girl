@@ -167,6 +167,36 @@ const seedDecisions = [
   { id: 'd18', label: 'Favors / welcome bags', done: false, link: '', notes: '' },
 ]
 
+// Invitations & stationery.
+export const STATIONERY_STATUSES = ['Not started', 'Designing', 'Ordered', 'Received', 'Sent']
+
+export function emptyStationeryItem(extra = {}) {
+  return { id: crypto.randomUUID(), name: '', status: 'Not started', quantity: 0, vendor: '', link: '', dueDate: '', notes: '', ...extra }
+}
+
+export const defaultStationery = {
+  wording: '',
+  items: [
+    { id: 'st1', name: 'Save-the-Dates', status: 'Sent', quantity: 80, vendor: 'Minted', link: '', dueDate: '', notes: '' },
+    { id: 'st2', name: 'Invitations', status: 'Ordered', quantity: 80, vendor: '', link: '', dueDate: '2026-07-15', notes: '' },
+    { id: 'st3', name: 'RSVP Cards', status: 'Ordered', quantity: 80, vendor: '', link: '', dueDate: '', notes: '' },
+    { id: 'st4', name: 'Details / Enclosure Cards', status: 'Not started', quantity: 0, vendor: '', link: '', dueDate: '', notes: '' },
+    { id: 'st5', name: 'Menus', status: 'Not started', quantity: 0, vendor: '', link: '', dueDate: '', notes: '' },
+    { id: 'st6', name: 'Ceremony Programs', status: 'Not started', quantity: 0, vendor: '', link: '', dueDate: '', notes: '' },
+    { id: 'st7', name: 'Place / Escort Cards', status: 'Not started', quantity: 0, vendor: '', link: '', dueDate: '', notes: '' },
+    { id: 'st8', name: 'Thank-You Cards', status: 'Not started', quantity: 0, vendor: '', link: '', dueDate: '', notes: '' },
+    { id: 'st9', name: 'Signage', status: 'Not started', quantity: 0, vendor: '', link: '', dueDate: '', notes: '' },
+  ],
+}
+
+function migrateStationery(st) {
+  if (!st || typeof st !== 'object') return defaultStationery
+  return {
+    wording: st.wording || '',
+    items: Array.isArray(st.items) ? st.items.map((i) => ({ ...emptyStationeryItem(), ...i, id: i.id || crypto.randomUUID() })) : defaultStationery.items,
+  }
+}
+
 // Detailed main wedding events (richer than calendar items). The ceremony's
 // shared fields live on `details`, so they populate the Details tab + guest view.
 export function emptyWeddingEvent(extra = {}) {
@@ -268,7 +298,7 @@ function migrateBudget(budget) {
 }
 
 function freshState() {
-  return { details: defaultDetails, guests: seedGuests, budget: defaultBudget, events: seedEvents, settings: defaultSettings, vendors: seedVendors, decisions: seedDecisions, weddingEvents: seedWeddingEvents, honeymoon: defaultHoneymoon }
+  return { details: defaultDetails, guests: seedGuests, budget: defaultBudget, events: seedEvents, settings: defaultSettings, vendors: seedVendors, decisions: seedDecisions, weddingEvents: seedWeddingEvents, honeymoon: defaultHoneymoon, stationery: defaultStationery }
 }
 
 function migrateHoneymoon(h) {
@@ -341,6 +371,7 @@ function migrateAll(data) {
     decisions: migrateDecisions(d.decisions),
     weddingEvents: migrateWeddingEvents(d.weddingEvents),
     honeymoon: migrateHoneymoon(d.honeymoon),
+    stationery: migrateStationery(d.stationery),
   }
 }
 
@@ -519,6 +550,9 @@ export function useStore(session) {
   const setHoneymoon = (patch) =>
     setState((s) => ({ ...s, honeymoon: { ...(s.honeymoon || defaultHoneymoon), ...patch } }))
 
+  const setStationery = (patch) =>
+    setState((s) => ({ ...s, stationery: { ...(s.stationery || defaultStationery), ...patch } }))
+
   const addWeddingEvent = (event = {}) =>
     setState((s) => ({ ...s, weddingEvents: [...(s.weddingEvents || []), emptyWeddingEvent(event)] }))
   const updateWeddingEvent = (id, patch) =>
@@ -553,6 +587,7 @@ export function useStore(session) {
     updateWeddingEvent,
     removeWeddingEvent,
     setHoneymoon,
+    setStationery,
   }
 }
 
