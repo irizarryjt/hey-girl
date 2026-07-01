@@ -334,7 +334,8 @@ button:disabled { opacity: .5; cursor: default; }
 .event-grid > .gd-field { min-width: 0; }
 .event-card .gd-field { min-width: 0; }
 .event-card .gd-field input, .event-card .gd-field textarea { width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; font-size: 14px; font-family: inherit; }
-.event-card .gd-field input[type="date"] { max-width: 100%; }
+/* Compact date field so it doesn't sprawl across the card on mobile. */
+.event-card .gd-field input[type="date"] { width: 160px; max-width: 100%; min-width: 0; box-sizing: border-box; }
 
 /* ---- Vendors ---- */
 .vendor-link { display: flex; flex-direction: column; gap: 2px; font-size: 13px; color: var(--ink); background: var(--bg); border-radius: 8px; padding: 8px 10px; }
