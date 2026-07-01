@@ -70,7 +70,8 @@ const TABS = [
 ]
 
 // On phones, only these show in the bottom bar; the rest live under a "•••" tab.
-const MOBILE_PRIMARY = ['chat', 'calendar', 'guests', 'budget']
+// Priority tabs (in this order) shown in the compact bottom bar; rest go under "•••".
+const MOBILE_PRIMARY = ['chat', 'details', 'guests', 'events', 'calendar']
 
 function Splash({ text = 'Loading…' }) {
   return (
@@ -396,7 +397,7 @@ function CoupleApp() {
         )}
       </main>
 
-      {tabMode === 'narrow' && moreOpen && (
+      {tabMode !== 'wide' && moreOpen && (
         <>
           <div className="more-backdrop" onClick={() => setMoreOpen(false)} />
           <div className="more-popup">
@@ -414,31 +415,24 @@ function CoupleApp() {
       )}
 
       <nav className="tabbar">
-        {tabMode === 'phone' &&
-          TABS.map((t) => (
-            <button key={t.id} className={`icon-only ${tab === t.id ? 'active' : ''}`} onClick={() => setTab(t.id)} title={t.name} aria-label={t.name}>
-              {t.icon}
-            </button>
-          ))}
-
-        {tabMode === 'narrow' && (
-          <>
-            {TABS.filter((t) => MOBILE_PRIMARY.includes(t.id)).map((t) => (
-              <button key={t.id} className={tab === t.id ? 'active' : ''} onClick={() => { setMoreOpen(false); setTab(t.id) }}>
-                {t.short || t.label}
+        {tabMode === 'wide'
+          ? TABS.map((t) => (
+              <button key={t.id} className={tab === t.id ? 'active' : ''} onClick={() => setTab(t.id)}>
+                {t.label}
               </button>
-            ))}
-            <button className={!MOBILE_PRIMARY.includes(tab) ? 'active' : ''} onClick={() => setMoreOpen((o) => !o)} aria-label="More tabs">
-              ••• More
-            </button>
-          </>
-        )}
-
-        {tabMode === 'wide' && TABS.map((t) => (
-          <button key={t.id} className={tab === t.id ? 'active' : ''} onClick={() => setTab(t.id)}>
-            {t.label}
-          </button>
-        ))}
+            ))
+          : (
+            <>
+              {MOBILE_PRIMARY.map((id) => TABS.find((t) => t.id === id)).filter(Boolean).map((t) => (
+                <button key={t.id} className={tab === t.id ? 'active' : ''} onClick={() => { setMoreOpen(false); setTab(t.id) }}>
+                  {t.short || t.label}
+                </button>
+              ))}
+              <button className={`tab-more ${!MOBILE_PRIMARY.includes(tab) ? 'active' : ''}`} onClick={() => setMoreOpen((o) => !o)} aria-label="More tabs">
+                •••
+              </button>
+            </>
+          )}
       </nav>
     </div>
   )

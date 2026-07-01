@@ -493,9 +493,8 @@ button:disabled { opacity: .5; cursor: default; }
 @media (max-width: 480px) {
   .form-grid { grid-template-columns: 1fr; }
   .auth-names { grid-template-columns: 1fr; }
-  .tabbar button { font-size: 11px; padding: 12px 2px; min-width: 0; }
-  /* Icon-only tabs on phones — all 14 fit across the bottom bar. */
-  .tabbar button.icon-only { font-size: 17px; padding: 11px 0; }
+  .tabbar button { font-size: 11px; padding: 12px 2px; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tabbar button.tab-more { flex: 0 0 auto; padding: 12px 8px; }
 
   /* Stack the couple's name + date under the "Hey Girl!" logo so it's fully readable */
   .topbar { align-items: flex-start; }
@@ -504,4 +503,16 @@ button:disabled { opacity: .5; cursor: default; }
 
   /* Stack the topbar buttons: Sign out sits below the return-to-site button */
   .topbar-actions { flex-direction: column; align-items: flex-end; gap: 6px; }
+
+  /* Stack multi-column input grids so fields don't crowd/overlap on phones */
+  .row3 { grid-template-columns: 1fr; }
+  .event-grid { grid-template-columns: 1fr; }
+  .member-grid { grid-template-columns: 1fr; }
+  .ck-grid { grid-template-columns: 1fr; }
+  .stats { grid-template-columns: repeat(2, 1fr); }
+  .reg-item { grid-template-columns: 1fr; }
+  .gd-field input, .gd-field textarea, .gd-field select,
+  .form-grid input, .form-grid textarea, .member input, .member textarea {
+    width: 100%; min-width: 0; box-sizing: border-box;
+  }
 }
