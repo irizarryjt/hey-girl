@@ -20,16 +20,21 @@ import Faq from './components/Faq.jsx'
 import Login from './components/Login.jsx'
 import GuestGate from './components/GuestGate.jsx'
 
-// True on narrow (phone) viewports, kept in sync on resize.
-function useIsMobile() {
-  const [mobile, setMobile] = useState(() => typeof window !== 'undefined' && window.matchMedia('(max-width: 480px)').matches)
+// Tab layout mode: 'phone' (icon-only), 'narrow' (a few tabs + More), 'wide' (all).
+function useTabMode() {
+  const get = () => {
+    if (typeof window === 'undefined') return 'wide'
+    if (window.matchMedia('(max-width: 480px)').matches) return 'phone'
+    if (window.matchMedia('(min-width: 1000px)').matches) return 'wide'
+    return 'narrow'
+  }
+  const [mode, setMode] = useState(get)
   useEffect(() => {
-    const mq = window.matchMedia('(max-width: 480px)')
-    const onChange = () => setMobile(mq.matches)
-    mq.addEventListener('change', onChange)
-    return () => mq.removeEventListener('change', onChange)
+    const on = () => setMode(get())
+    window.addEventListener('resize', on)
+    return () => window.removeEventListener('resize', on)
   }, [])
-  return mobile
+  return mode
 }
 
 function prettyDate(str) {
@@ -166,7 +171,7 @@ function CoupleApp() {
   const [moreOpen, setMoreOpen] = useState(false)
   const [pendingPrompt, setPendingPrompt] = useState(null)
   const [chatMessages, setChatMessages] = useState([]) // persists chat for the session
-  const isMobile = useIsMobile()
+  const tabMode = useTabMode()
 
   // Send a suggested prompt to Hey Girl: stash it, then jump to the chat tab.
   const askHeyGirl = (prompt) => { setPendingPrompt(prompt); setMoreOpen(false); setMenuOpen(false); setTab('chat') }
@@ -378,7 +383,10 @@ function CoupleApp() {
             <Chat
               mode="guest"
               details={store.details}
-              intro={`Hi! I'm Hey Girl 💕 Ask me anything about ${store.details.coupleNames}'s wedding — date, venue, dress code, parking, you name it.`}
+              intro={[
+                "Hi! I'm Hey Girl 💕",
+                `Ask me anything about ${store.details.coupleNames}'s wedding — date, venue, dress code, parking, whether events are kid-friendly, you name it.`,
+              ]}
               suggestions={['When and where is it?', "What's the dress code?", 'Is there a hotel block?']}
             />
           </div>
@@ -388,16 +396,47 @@ function CoupleApp() {
         )}
       </main>
 
+      {tabMode === 'narrow' && moreOpen && (
+        <>
+          <div className="more-backdrop" onClick={() => setMoreOpen(false)} />
+          <div className="more-popup">
+            {TABS.filter((t) => !MOBILE_PRIMARY.includes(t.id)).map((t) => (
+              <button
+                key={t.id}
+                className={`more-item ${tab === t.id ? 'active' : ''}`}
+                onClick={() => { setTab(t.id); setMoreOpen(false) }}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+
       <nav className="tabbar">
-        {TABS.map((t) => (
-          <button
-            key={t.id}
-            className={`${tab === t.id ? 'active' : ''} ${isMobile && t.id === 'chat' ? 'tab-chat' : ''} ${isMobile && t.id !== 'chat' ? 'icon-only' : ''}`}
-            onClick={() => setTab(t.id)}
-            title={t.name}
-            aria-label={t.name}
-          >
-            {isMobile ? (t.id === 'chat' ? t.short : t.icon) : t.label}
+        {tabMode === 'phone' &&
+          TABS.map((t) => (
+            <button key={t.id} className={`icon-only ${tab === t.id ? 'active' : ''}`} onClick={() => setTab(t.id)} title={t.name} aria-label={t.name}>
+              {t.icon}
+            </button>
+          ))}
+
+        {tabMode === 'narrow' && (
+          <>
+            {TABS.filter((t) => MOBILE_PRIMARY.includes(t.id)).map((t) => (
+              <button key={t.id} className={tab === t.id ? 'active' : ''} onClick={() => { setMoreOpen(false); setTab(t.id) }}>
+                {t.short || t.label}
+              </button>
+            ))}
+            <button className={!MOBILE_PRIMARY.includes(tab) ? 'active' : ''} onClick={() => setMoreOpen((o) => !o)} aria-label="More tabs">
+              ••• More
+            </button>
+          </>
+        )}
+
+        {tabMode === 'wide' && TABS.map((t) => (
+          <button key={t.id} className={tab === t.id ? 'active' : ''} onClick={() => setTab(t.id)}>
+            {t.label}
           </button>
         ))}
       </nav>

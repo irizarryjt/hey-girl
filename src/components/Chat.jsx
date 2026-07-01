@@ -261,15 +261,19 @@ export default function Chat({
       <div className="chat-scroll" ref={scrollRef}>
         {messages.map((m, i) => {
           const text = m.display || m.content || ''
+          const hasExtras = (m.events && m.events.length) || (m.budgetItems && m.budgetItems.length) || m.invite || m.rsvp
+          if (!text && !hasExtras) return null // skip empty bubbles
           const prev = messages[i - 1]
           const next = messages[i + 1]
           const cont = prev && prev.role === m.role
           const last = !(next && next.role === m.role)
           return (
             <div key={i} className={`msg-row ${cont ? 'tight' : ''}`}>
-              <div className={`bubble ${m.role} ${cont ? 'cont' : ''} ${last ? '' : 'no-tail'}`}>
-                {richText(text)}
-              </div>
+              {text && (
+                <div className={`bubble ${m.role} ${cont ? 'cont' : ''} ${last ? '' : 'no-tail'}`}>
+                  {richText(text)}
+                </div>
+              )}
               {m.events && m.events.length > 0 && (
                 <div className="ev-suggest">
                   {m.events.map((ev, j) => {

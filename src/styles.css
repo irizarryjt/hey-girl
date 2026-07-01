@@ -494,9 +494,8 @@ button:disabled { opacity: .5; cursor: default; }
   .form-grid { grid-template-columns: 1fr; }
   .auth-names { grid-template-columns: 1fr; }
   .tabbar button { font-size: 11px; padding: 12px 2px; min-width: 0; }
-  /* Icon-only tabs on mobile (Chat keeps its label); trying to fit them all. */
-  .tabbar button.icon-only { font-size: 17px; padding: 12px 0; }
-  .tabbar button.tab-chat { flex: 0 0 auto; font-size: 12px; font-weight: 700; padding: 12px 10px; }
+  /* Icon-only tabs on phones — all 14 fit across the bottom bar. */
+  .tabbar button.icon-only { font-size: 17px; padding: 11px 0; }
 
   /* Stack the couple's name + date under the "Hey Girl!" logo so it's fully readable */
   .topbar { align-items: flex-start; }
