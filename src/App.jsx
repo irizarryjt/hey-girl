@@ -167,7 +167,18 @@ function GuestApp({ token, initialDetails }) {
 function CoupleApp() {
   const { session, ready, recovery, clearRecovery } = useSession()
   const store = useStore(session)
-  const [tab, setTab] = useState('chat')
+  // Restore the last tab the couple was on (across refreshes), defaulting to chat.
+  const [tab, setTab] = useState(() => {
+    try {
+      const saved = localStorage.getItem('heygirl.lastTab')
+      return TABS.some((t) => t.id === saved) ? saved : 'chat'
+    } catch {
+      return 'chat'
+    }
+  })
+  useEffect(() => {
+    try { localStorage.setItem('heygirl.lastTab', tab) } catch {}
+  }, [tab])
   const [menuOpen, setMenuOpen] = useState(false)
   const [moreOpen, setMoreOpen] = useState(false)
   const [pendingPrompt, setPendingPrompt] = useState(null)
