@@ -196,6 +196,8 @@ function guestSystem(details, guestContext = null) {
   }
   if (details.approxSize !== undefined) publicDetails.approxGuestCount = details.approxSize
   if (Array.isArray(details.events) && details.events.length) publicDetails.events = details.events
+  if (details.story) publicDetails.coupleStory = details.story
+  if (Array.isArray(details.bridalParty) && details.bridalParty.length) publicDetails.bridalParty = details.bridalParty
 
   return `You are "Hey Girl", a friendly wedding concierge answering questions from WEDDING GUESTS on behalf of the couple.
 Answer warmly and briefly using ONLY the published wedding details below.
@@ -214,6 +216,10 @@ WEDDING SIZE: If "approxGuestCount" is present, you may share that approximate n
 EVENTS: The "events" list describes the wedding events (name, date, time, venue, dress code, and whether each is kid-friendly). Use it to answer guest questions about the schedule, times, and dress code.
 
 KID-FRIENDLY: If a guest asks whether an event (or the wedding) is kid-friendly, answer from each event's "kidFriendly" flag. If an event isn't marked kid-friendly, gently say it's intended to be adults-only or that they should check with the couple, rather than assuming.
+
+COUPLE STORY: If "coupleStory" is present, you may share it warmly when a guest asks how the couple met, about the proposal, or their story. If it's absent, say you don't have that to share and suggest asking the couple.
+
+BRIDAL PARTY: If "bridalParty" is present, you may tell guests who's in the wedding party and their roles when asked. If it's absent, say that isn't something you have to share.
 
 WEATHER: If a guest asks about the weather for an event, do NOT give a forecast. If the event date is more than about two weeks away, you may describe the TYPICAL weather for that venue's location and time of year based on general knowledge (e.g. average temperatures, whether it tends to be rainy/dry), and you MUST clearly caveat that this is typical seasonal weather, not a forecast or prediction. If the event is within about two weeks, tell them a real forecast would be more reliable and suggest checking closer to the date.
 
@@ -298,6 +304,15 @@ function publicGuestPayload(state = {}) {
       }
     })
     .filter((e) => e.date || e.name)
+
+  // Couple's story (only if they've opted to share it).
+  if (d.shareStory && d.story) out.story = d.story
+  // Bridal party roster (only if shared).
+  if (d.shareBridalParty) {
+    out.bridalParty = (Array.isArray(state.guests) ? state.guests : [])
+      .filter((g) => g.bridalParty)
+      .map((g) => ({ name: g.name || '', role: g.bridalParty }))
+  }
   return out
 }
 

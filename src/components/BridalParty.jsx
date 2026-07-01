@@ -4,7 +4,7 @@ import { BRIDAL_ROLES } from '../lib/store.js'
 const ROLE_ORDER = BRIDAL_ROLES.filter(Boolean)
 const sideLabel = (s) => (s === 'bride' ? "Bride's side" : s === 'groom' ? "Groom's side" : '')
 
-export default function BridalParty({ guests, updateGuest }) {
+export default function BridalParty({ guests, updateGuest, details, setDetails }) {
   const members = (guests || [])
     .filter((g) => g.bridalParty)
     .sort((a, b) => {
@@ -20,6 +20,17 @@ export default function BridalParty({ guests, updateGuest }) {
         This fills in automatically from the <strong>Bridal party role</strong> you set on each guest in the
         Guests tab. Change a role here and it updates the guest too.
       </p>
+
+      <label className="ck">
+        <input
+          type="checkbox"
+          checked={!!details?.shareBridalParty}
+          onChange={(e) => setDetails?.({ ...details, shareBridalParty: e.target.checked })}
+        />
+        Share the bridal party's names &amp; roles with guests
+      </label>
+      <p className="hint" style={{ marginTop: '4px' }}>When on, this list also appears in your Shared Details and guests can ask Hey Girl about it.</p>
+
       <p className="guest-substat">{members.length} in the bridal party</p>
 
       {members.length === 0 ? (

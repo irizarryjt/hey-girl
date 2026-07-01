@@ -27,6 +27,10 @@ export const defaultDetails = {
   // Guest-permission toggles (off by default — couple opts in to share)
   allowSizeInquiry: false,
   allowStickToRegistryInquiry: false,
+  // Couple story + bridal party sharing
+  shareStory: false,
+  story: '',
+  shareBridalParty: false,
 }
 
 // Build the display name used in headers, the share link, and Hey Girl's context.
@@ -67,6 +71,9 @@ function migrateDetails(details) {
     stickToRegistry: !!d.stickToRegistry,
     allowSizeInquiry: !!d.allowSizeInquiry,
     allowStickToRegistryInquiry: !!d.allowStickToRegistryInquiry,
+    shareStory: !!d.shareStory,
+    story: d.story || '',
+    shareBridalParty: !!d.shareBridalParty,
   }
 }
 

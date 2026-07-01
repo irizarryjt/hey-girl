@@ -296,6 +296,18 @@ button:disabled { opacity: .5; cursor: default; }
 .yn-btn + .yn-btn { border-left: 1px solid var(--line); }
 .yn-btn.on { background: var(--rose); color: #fff; }
 
+/* Partner name rows — first + last stay side by side, even on mobile */
+.name-rows { display: flex; flex-direction: column; gap: 12px; }
+.name-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.name-row label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--muted); min-width: 0; }
+.name-row input { width: 100%; min-width: 0; box-sizing: border-box; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; font-size: 14px; }
+
+/* Read-only auto-filled lists (Events / Bridal Party in Shared Details) */
+.ro-list { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.ro-item { background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+.ro-title { font-weight: 700; font-size: 14px; color: var(--ink); }
+.ro-meta { font-size: 13px; color: var(--muted); margin-top: 2px; }
+
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .form-grid label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--muted); }
 .form-grid label.full { grid-column: 1 / -1; }

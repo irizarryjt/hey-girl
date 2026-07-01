@@ -337,7 +337,7 @@ function CoupleApp() {
           />
         )}
 
-        {tab === 'bridalparty' && <BridalParty guests={store.guests} updateGuest={store.updateGuest} />}
+        {tab === 'bridalparty' && <BridalParty guests={store.guests} updateGuest={store.updateGuest} details={store.details} setDetails={store.setDetails} />}
 
         {tab === 'vendors' && (
           <Vendor
@@ -364,7 +364,7 @@ function CoupleApp() {
           />
         )}
 
-        {tab === 'details' && <Details details={store.details} setDetails={store.setDetails} />}
+        {tab === 'details' && <Details details={store.details} setDetails={store.setDetails} weddingEvents={store.weddingEvents} guests={store.guests} />}
 
         {tab === 'registry' && <Registry details={store.details} setDetails={store.setDetails} onAskHeyGirl={() => setTab('chat')} />}
 
