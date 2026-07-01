@@ -96,6 +96,13 @@ function richText(text) {
 const TIMELINE_PROMPT =
   'Yes — please give me a recommended timeline with priorities for the months leading up to the wedding, and add the key milestone dates to my calendar.'
 
+// Split a reply into separate chat bubbles at blank lines, so a longer answer
+// arrives as a few messages (like texting) instead of one wall of text.
+function splitBubbles(text) {
+  const parts = String(text).split(/\n{2,}/).map((s) => s.trim()).filter(Boolean)
+  return parts.length ? parts : [String(text).trim()].filter(Boolean)
+}
+
 export default function Chat({
   mode,
   details,
@@ -116,12 +123,9 @@ export default function Chat({
   pendingPrompt = null,
   onPromptConsumed,
 }) {
-  // The welcome stays as the first message at the very top of the thread (like a
-  // text conversation); it scrolls up out of view as the chat grows. The full
-  // welcome also lives permanently in the FAQ tab.
-  const [messages, setMessages] = useState(
-    intro ? [{ role: 'assistant', content: intro, events: [], budgetItems: [] }] : []
-  )
+  // Bubbles are revealed one at a time (see revealSequential). The welcome also
+  // lives permanently in the FAQ tab.
+  const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
   const [busy, setBusy] = useState(false)
   const [added, setAdded] = useState({})
@@ -129,12 +133,40 @@ export default function Chat({
   const [offerOpen, setOfferOpen] = useState(true)
   const scrollRef = useRef(null)
   const fileRef = useRef(null)
-  // "Started" = the couple has sent at least one message (works with or without intro).
+  const mountedRef = useRef(true)
+  // "Started" = the couple has sent at least one message.
   const started = messages.some((m) => m.role === 'user')
+
+  useEffect(() => () => { mountedRef.current = false }, [])
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' })
   }, [messages, busy])
+
+  // Append assistant bubbles one at a time (typing indicator shows between them).
+  // Structured extras (events/budget/invite/rsvp) attach to the final bubble.
+  function revealSequential(segments, extras = {}, onDone) {
+    const segs = (segments || []).map((s) => String(s).trim()).filter(Boolean)
+    if (!segs.length) { setBusy(false); onDone?.(); return }
+    setBusy(true)
+    let i = 0
+    const step = () => {
+      if (!mountedRef.current) return
+      const isLast = i === segs.length - 1
+      setMessages((m) => [...m, { role: 'assistant', content: segs[i], events: [], budgetItems: [], ...(isLast ? extras : {}) }])
+      i++
+      if (i < segs.length) setTimeout(step, 750)
+      else { setBusy(false); onDone?.() }
+    }
+    setTimeout(step, 450)
+  }
+
+  // Reveal the welcome bubbles one at a time on mount (unless a prompt is pending).
+  useEffect(() => {
+    if (!intro || pendingPrompt) return
+    revealSequential(Array.isArray(intro) ? intro : [intro])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // A suggested prompt from another tab (e.g. Decisions) — send it once.
   useEffect(() => {
@@ -154,19 +186,19 @@ export default function Chat({
     setInput('')
     setBusy(true)
     try {
-      const history = next
-        .filter((m, i) => !(i === 0 && m.role === 'assistant'))
-        .map((m) => ({ role: m.role, content: m.content }))
+      // Only send the real conversation (skip the leading welcome bubbles).
+      const firstUser = next.findIndex((m) => m.role === 'user')
+      const history = (firstUser >= 0 ? next.slice(firstUser) : next).map((m) => ({ role: m.role, content: m.content }))
       const { reply } = await askHeyGirl({ mode, messages: history, details, guestStats: stats, budget, events, guestContext })
       const { clean, events: suggested, budgetItems, invite, rsvp } = parseReply(reply)
-      setMessages((m) => [...m, { role: 'assistant', content: clean, events: suggested, budgetItems, invite, rsvp }])
-      if (notifyEnabled && suggested.length > 0) {
-        const titles = suggested.map((e) => e.title).slice(0, 3).join(', ')
-        showNotification('Hey Girl mapped out your timeline 💍', `${suggested.length} date${suggested.length > 1 ? 's' : ''} to add: ${titles}`)
-      }
+      revealSequential(splitBubbles(clean), { events: suggested, budgetItems, invite, rsvp }, () => {
+        if (notifyEnabled && suggested.length > 0) {
+          const titles = suggested.map((e) => e.title).slice(0, 3).join(', ')
+          showNotification('Hey Girl mapped out your timeline 💍', `${suggested.length} date${suggested.length > 1 ? 's' : ''} to add: ${titles}`)
+        }
+      })
     } catch (e) {
       setMessages((m) => [...m, { role: 'assistant', content: `Oof — ${e.message}`, events: [], budgetItems: [] }])
-    } finally {
       setBusy(false)
     }
   }

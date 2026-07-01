@@ -13,6 +13,7 @@ import Calendar from './components/Calendar.jsx'
 import Events from './components/Events.jsx'
 import Share from './components/Share.jsx'
 import Registry from './components/Registry.jsx'
+import Honeymoon from './components/Honeymoon.jsx'
 import Vendor from './components/Vendor.jsx'
 import Decisions from './components/Decisions.jsx'
 import Faq from './components/Faq.jsx'
@@ -38,9 +39,13 @@ function prettyDate(str) {
   return new Date(y, m - 1, d).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
 }
 
-// Shown once in the chat on first login, then it lives permanently in the FAQ tab.
-const COUPLE_INTRO =
-  "Congratulations on your engagement! I'm your wedding planning bestie. Ask me about your timeline, budget, etiquette, or anything wedding related. Heads up: everything's filled in with placeholder details right now — a sample couple, budget, guests, and dates — just so you can see how it all works. Update anything in the tabs to make it yours."
+// Welcome bubbles — revealed one at a time in the chat. The "everything's a
+// placeholder" explanation now lives in the FAQ tab instead of the first bubble.
+const COUPLE_INTRO = [
+  'Congratulations on your engagement! 💕',
+  "I'm your wedding planning bestie — ask me about your timeline, budget, etiquette, or anything wedding related.",
+  'Poke around the tabs and update anything to make it your own!',
+]
 
 const TABS = [
   { id: 'chat', label: '💬 Hey Girl Chat', name: 'Hey Girl Chat', short: '💬 Chat' },
@@ -53,6 +58,7 @@ const TABS = [
   { id: 'decisions', label: '✅ Decisions', name: 'Decisions', short: '✅ Decisions' },
   { id: 'details', label: '📋 Shared Details', name: 'Shared Details', short: '📋 Details' },
   { id: 'registry', label: '🎁 Registry', name: 'Registry', short: '🎁 Registry' },
+  { id: 'honeymoon', label: '🌴 Honeymoon', name: 'Honeymoon', short: '🌴 Honeymoon' },
   { id: 'share', label: '🔗 Share', name: 'Share', short: '🔗 Share' },
   { id: 'guestmode', label: '👀 Guest View', name: 'Guest View', short: '👀 Guests' },
   { id: 'faq', label: '❓ FAQ', name: 'FAQ', short: '❓ FAQ' },
@@ -353,9 +359,11 @@ function CoupleApp() {
 
         {tab === 'registry' && <Registry details={store.details} setDetails={store.setDetails} onAskHeyGirl={() => setTab('chat')} />}
 
+        {tab === 'honeymoon' && <Honeymoon honeymoon={store.honeymoon} setHoneymoon={store.setHoneymoon} />}
+
         {tab === 'share' && <Share details={store.details} shareToken={store.shareToken} approxSize={stats.invited} />}
 
-        {tab === 'faq' && <Faq intro={COUPLE_INTRO} />}
+        {tab === 'faq' && <Faq />}
 
         {tab === 'guestmode' && (
           <div className="guestmode-wrap">

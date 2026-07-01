@@ -163,16 +163,28 @@ const seedDecisions = [
 // Detailed main wedding events (richer than calendar items). The ceremony's
 // shared fields live on `details`, so they populate the Details tab + guest view.
 export function emptyWeddingEvent(extra = {}) {
-  return { id: crypto.randomUUID(), key: '', name: 'New event', date: '', time: '', endTime: '', venueName: '', venueAddress: '', dressCode: '', notes: '', ...extra }
+  return { id: crypto.randomUUID(), key: '', name: 'New event', date: '', time: '', endTime: '', venueName: '', venueAddress: '', dressCode: '', kidFriendly: false, notes: '', ...extra }
 }
 
 const seedWeddingEvents = [
-  { id: 'we1', key: 'rehearsal', name: 'Rehearsal Dinner', date: '2026-09-18', time: '6:00 PM', endTime: '8:30 PM', venueName: 'Sonoma Bistro', venueAddress: '', dressCode: 'Cocktail', notes: 'Wedding party + close family.' },
-  { id: 'we2', key: 'ceremony', name: 'Wedding Ceremony', date: '', time: '', endTime: '5:00 PM', venueName: '', venueAddress: '', dressCode: '', notes: 'Outdoor ceremony in the garden.' },
-  { id: 'we3', key: 'reception', name: 'Wedding Reception', date: '2026-09-19', time: '5:30 PM', endTime: '11:00 PM', venueName: 'The Rosewood Barn', venueAddress: '1200 Vineyard Ln, Sonoma, CA', dressCode: 'Garden formal', notes: 'Dinner, toasts, and dancing.' },
-  { id: 'we4', key: 'welcome', name: 'Welcome Party', date: '2026-09-18', time: '8:00 PM', endTime: '', venueName: '', venueAddress: '', dressCode: 'Casual', notes: 'Optional — for out-of-town guests.' },
-  { id: 'we5', key: 'brunch', name: 'Day-After Brunch', date: '2026-09-20', time: '10:00 AM', endTime: '', venueName: '', venueAddress: '', dressCode: 'Casual', notes: '' },
+  { id: 'we1', key: 'rehearsal', name: 'Rehearsal Dinner', date: '2026-09-18', time: '6:00 PM', endTime: '8:30 PM', venueName: 'Sonoma Bistro', venueAddress: '', dressCode: 'Cocktail', kidFriendly: false, notes: 'Wedding party + close family.' },
+  { id: 'we2', key: 'ceremony', name: 'Wedding Ceremony', date: '', time: '', endTime: '5:00 PM', venueName: '', venueAddress: '', dressCode: '', kidFriendly: true, notes: 'Outdoor ceremony in the garden.' },
+  { id: 'we3', key: 'reception', name: 'Wedding Reception', date: '2026-09-19', time: '5:30 PM', endTime: '11:00 PM', venueName: 'The Rosewood Barn', venueAddress: '1200 Vineyard Ln, Sonoma, CA', dressCode: 'Garden formal', kidFriendly: true, notes: 'Dinner, toasts, and dancing. Kid-friendly until 8 PM.' },
+  { id: 'we4', key: 'welcome', name: 'Welcome Party', date: '2026-09-18', time: '8:00 PM', endTime: '', venueName: '', venueAddress: '', dressCode: 'Casual', kidFriendly: true, notes: 'Optional — for out-of-town guests.' },
+  { id: 'we5', key: 'brunch', name: 'Day-After Brunch', date: '2026-09-20', time: '10:00 AM', endTime: '', venueName: '', venueAddress: '', dressCode: 'Casual', kidFriendly: true, notes: '' },
 ]
+
+export const defaultHoneymoon = {
+  destination: '', startDate: '', endDate: '', budget: 0, notes: '',
+  checklist: [
+    { id: 'hm1', label: 'Passports valid / renewed', done: false },
+    { id: 'hm2', label: 'Flights booked', done: false },
+    { id: 'hm3', label: 'Accommodation booked', done: false },
+    { id: 'hm4', label: 'Travel insurance', done: false },
+    { id: 'hm5', label: 'Itinerary / activities planned', done: false },
+    { id: 'hm6', label: 'Time off work approved', done: false },
+  ],
+}
 
 const seedEvents = [
   { id: 'e1', date: '2026-07-10', title: 'Catering tasting', notes: '' },
@@ -247,7 +259,16 @@ function migrateBudget(budget) {
 }
 
 function freshState() {
-  return { details: defaultDetails, guests: seedGuests, budget: defaultBudget, events: seedEvents, settings: defaultSettings, vendors: seedVendors, decisions: seedDecisions, weddingEvents: seedWeddingEvents }
+  return { details: defaultDetails, guests: seedGuests, budget: defaultBudget, events: seedEvents, settings: defaultSettings, vendors: seedVendors, decisions: seedDecisions, weddingEvents: seedWeddingEvents, honeymoon: defaultHoneymoon }
+}
+
+function migrateHoneymoon(h) {
+  if (!h || typeof h !== 'object') return defaultHoneymoon
+  return {
+    ...defaultHoneymoon,
+    ...h,
+    checklist: Array.isArray(h.checklist) ? h.checklist : defaultHoneymoon.checklist,
+  }
 }
 
 function migrateVendors(vendors) {
@@ -306,6 +327,7 @@ function migrateAll(data) {
     vendors: migrateVendors(d.vendors),
     decisions: migrateDecisions(d.decisions),
     weddingEvents: migrateWeddingEvents(d.weddingEvents),
+    honeymoon: migrateHoneymoon(d.honeymoon),
   }
 }
 
@@ -481,6 +503,9 @@ export function useStore(session) {
   const removeDecision = (id) =>
     setState((s) => ({ ...s, decisions: (s.decisions || []).filter((d) => d.id !== id) }))
 
+  const setHoneymoon = (patch) =>
+    setState((s) => ({ ...s, honeymoon: { ...(s.honeymoon || defaultHoneymoon), ...patch } }))
+
   const addWeddingEvent = (event = {}) =>
     setState((s) => ({ ...s, weddingEvents: [...(s.weddingEvents || []), emptyWeddingEvent(event)] }))
   const updateWeddingEvent = (id, patch) =>
@@ -514,6 +539,7 @@ export function useStore(session) {
     addWeddingEvent,
     updateWeddingEvent,
     removeWeddingEvent,
+    setHoneymoon,
   }
 }
 

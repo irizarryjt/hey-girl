@@ -330,7 +330,10 @@ button:disabled { opacity: .5; cursor: default; }
 .event-name { flex: 1; font-family: var(--serif); font-size: 17px; font-weight: 600; color: var(--rose-deep); border: none; background: transparent; padding: 2px 0; }
 .event-head .del.small { position: static; }
 .event-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.event-card .gd-field input, .event-card .gd-field textarea { padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; font-size: 14px; font-family: inherit; }
+.event-grid > .gd-field { min-width: 0; }
+.event-card .gd-field { min-width: 0; }
+.event-card .gd-field input, .event-card .gd-field textarea { width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; font-size: 14px; font-family: inherit; }
+.event-card .gd-field input[type="date"] { max-width: 100%; }
 
 /* ---- Vendors ---- */
 .vendor-link { display: flex; flex-direction: column; gap: 2px; font-size: 13px; color: var(--ink); background: var(--bg); border-radius: 8px; padding: 8px 10px; }

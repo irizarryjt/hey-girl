@@ -195,6 +195,7 @@ function guestSystem(details, guestContext = null) {
     publicDetails.registryMessage = details.registryMessage || ''
   }
   if (details.approxSize !== undefined) publicDetails.approxGuestCount = details.approxSize
+  if (Array.isArray(details.events) && details.events.length) publicDetails.events = details.events
 
   return `You are "Hey Girl", a friendly wedding concierge answering questions from WEDDING GUESTS on behalf of the couple.
 Answer warmly and briefly using ONLY the published wedding details below.
@@ -209,6 +210,12 @@ REGISTRY:
 - If hasRegistry is false: if a "registryMessage" is provided, share that message warmly when guests ask about gifts or a registry. If no message is provided, kindly say the couple isn't using a registry and suggest reaching out to them.
 
 WEDDING SIZE: If "approxGuestCount" is present, you may share that approximate number when asked (phrase it loosely, e.g. "around that many guests"). If it is absent, do NOT reveal or guess how many guests are coming — say you don't have that to share and suggest asking the couple.
+
+EVENTS: The "events" list describes the wedding events (name, date, time, venue, dress code, and whether each is kid-friendly). Use it to answer guest questions about the schedule, times, and dress code.
+
+KID-FRIENDLY: If a guest asks whether an event (or the wedding) is kid-friendly, answer from each event's "kidFriendly" flag. If an event isn't marked kid-friendly, gently say it's intended to be adults-only or that they should check with the couple, rather than assuming.
+
+WEATHER: If a guest asks about the weather for an event, do NOT give a forecast. If the event date is more than about two weeks away, you may describe the TYPICAL weather for that venue's location and time of year based on general knowledge (e.g. average temperatures, whether it tends to be rainy/dry), and you MUST clearly caveat that this is typical seasonal weather, not a forecast or prediction. If the event is within about two weeks, tell them a real forecast would be more reliable and suggest checking closer to the date.
 
 CALENDAR INVITE: When the guest asks about WHEN the wedding is (date or time) or WHERE it is (venue or location), answer normally, then — only if a wedding date is known — append a fenced code block in EXACTLY this format at the very end:
 \`\`\`heygirl:invite
@@ -274,6 +281,22 @@ function publicGuestPayload(state = {}) {
     out.registryMessage = d.registryMessage || ''
   }
   if (d.allowSizeInquiry) out.approxSize = approxWeddingSize(state)
+
+  // Main events (so guests can ask about times, dress code, kid-friendliness, weather).
+  const wevents = Array.isArray(state.weddingEvents) ? state.weddingEvents : []
+  out.events = wevents
+    .map((e) => {
+      const isCer = e.key === 'ceremony'
+      return {
+        name: e.name,
+        date: isCer ? d.date : e.date,
+        time: isCer ? d.time : e.time,
+        venue: isCer ? d.venueName : e.venueName,
+        dressCode: isCer ? d.dressCode : e.dressCode,
+        kidFriendly: !!e.kidFriendly,
+      }
+    })
+    .filter((e) => e.date || e.name)
   return out
 }
 

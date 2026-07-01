@@ -66,6 +66,7 @@ export default function Events({ weddingEvents, addWeddingEvent, updateWeddingEv
             </div>
             <label className="gd-field full"><span>Venue</span><input value={getVal(ev, 'venueName')} onChange={(e) => setVal(ev, 'venueName', e.target.value)} placeholder="Venue name" /></label>
             <label className="gd-field full"><span>Address</span><input value={getVal(ev, 'venueAddress')} onChange={(e) => setVal(ev, 'venueAddress', e.target.value)} placeholder="Street, city, state" /></label>
+            <label className="ck"><input type="checkbox" checked={!!ev.kidFriendly} onChange={(e) => updateWeddingEvent(ev.id, { kidFriendly: e.target.checked })} /> Kid-friendly (guests can ask about this)</label>
             <label className="gd-field full"><span>Notes</span><textarea rows="2" value={ev.notes} onChange={(e) => updateWeddingEvent(ev.id, { notes: e.target.value })} placeholder="Anything helpful about this event" /></label>
             {icsEventFor(ev) && (
               <button

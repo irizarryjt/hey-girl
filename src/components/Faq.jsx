@@ -1,13 +1,22 @@
 // "How I work" / FAQ tab. Holds the welcome info that used to live in the
 // chat's first bubble, plus a short guide to each part of the app.
-export default function Faq({ intro }) {
+export default function Faq() {
   return (
     <div className="panel faq">
       <div className="faq-welcome">
         <h2>Hey girl — here's how I work 💕</h2>
         <p>
-          {intro ||
-            "Congratulations on your engagement! I'm your wedding planning bestie. Ask me about your timeline, budget, etiquette, or anything wedding related. Heads up: everything's filled in with placeholder details right now — a sample couple, budget, guests, and dates — just so you can see how it all works. Update anything in the tabs to make it yours."}
+          Congratulations on your engagement! I'm your wedding planning bestie. Ask me about your
+          timeline, budget, etiquette, or anything wedding related.
+        </p>
+      </div>
+
+      <div className="faq-item">
+        <h3>Why is everything already filled in?</h3>
+        <p>
+          Everything starts with <strong>placeholder details</strong> — a sample couple, budget,
+          guests, dates, and events — just so you can see how it all works. Update anything in the
+          tabs to make it yours; your changes replace the samples.
         </p>
       </div>
 
@@ -44,6 +53,61 @@ export default function Faq({ intro }) {
         <p>
           Track each cost with its vendor, estimated and actual amounts, what you've paid, what you
           still owe, and a due date. Ask me money questions and I'll give you a clear breakdown.
+        </p>
+      </div>
+
+      <div className="faq-item">
+        <h3>🎉 Events</h3>
+        <p>
+          Plan the main events — rehearsal dinner, ceremony, reception, welcome party, brunch — in
+          detail: time, venue, dress code, whether each is kid-friendly, and notes. The
+          <strong> ceremony</strong>'s date, time, venue, and dress code are shared with the Shared
+          Details tab and your guests. Every event with a date shows on your <strong>Calendar</strong>,
+          and you can download a calendar invite for each.
+        </p>
+      </div>
+
+      <div className="faq-item">
+        <h3>💐 Bridal Party</h3>
+        <p>
+          Auto-fills from the <strong>Bridal party role</strong> you set on each guest in the Guests
+          tab (maid of honor, best man, flower girl, and so on). Change a role here and it updates the
+          guest too.
+        </p>
+      </div>
+
+      <div className="faq-item">
+        <h3>🤝 Vendors</h3>
+        <p>
+          Keep every vendor in one place — contact info, website, and status. Each vendor links to its
+          costs from <strong>Budget</strong> and any matching <strong>Calendar</strong> events, and you
+          can import vendors straight from your budget.
+        </p>
+      </div>
+
+      <div className="faq-item">
+        <h3>✅ Decisions</h3>
+        <p>
+          A checklist for choices the other tabs don't cover — dress, attire, hair, makeup, cake, music,
+          and more. Add a link and notes to each, tap <strong>Ask Hey Girl</strong> for tailored help,
+          or move an item over to <strong>Vendors</strong> once you've picked someone.
+        </p>
+      </div>
+
+      <div className="faq-item">
+        <h3>🎁 Registry</h3>
+        <p>
+          Say whether you're having a registry and add your links, or, if you're not, write the note
+          guests see when they ask about gifts. You control whether guests can ask if you'd prefer they
+          stick to the registry.
+        </p>
+      </div>
+
+      <div className="faq-item">
+        <h3>🌴 Honeymoon</h3>
+        <p>
+          Plan your getaway — destination, dates, budget, notes, and a checklist (passports, flights,
+          insurance, and more) to keep it on track.
         </p>
       </div>
 

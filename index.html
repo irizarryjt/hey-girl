@@ -113,7 +113,10 @@
   .b.you { align-self: flex-end; background: var(--rose); color: #fff; }
   .b.you::before { content: ''; position: absolute; z-index: -1; bottom: 0; right: -6px; width: 16px; height: 16px; background: var(--rose); border-bottom-left-radius: 14px; }
   .b.you::after { content: ''; position: absolute; z-index: -1; bottom: 0; right: -11px; width: 13px; height: 16px; background: var(--bg); border-bottom-left-radius: 10px; }
-  .phone-input { margin: 0 14px 16px; background: #fff; border: 1px solid var(--line); border-radius: 999px; padding: 10px 14px; font-size: 13px; color: var(--muted); display: flex; justify-content: space-between; align-items: center; }
+  .chip-add { align-self: flex-start; background: var(--rose); color: #fff; font-size: 12px; font-weight: 700; padding: 7px 12px; border-radius: 999px; box-shadow: 0 1px 4px rgba(181,131,141,0.35); }
+  .phone-input { margin: 0 14px 16px; background: #fff; border: 1px solid var(--line); border-radius: 999px; padding: 10px 14px; font-size: 13px; color: var(--muted); display: flex; gap: 10px; align-items: center; }
+  .phone-input .plus { flex-shrink: 0; width: 22px; height: 22px; border-radius: 50%; background: var(--blush); color: var(--rose-deep); font-weight: 700; display: inline-flex; align-items: center; justify-content: center; font-size: 16px; line-height: 1; }
+  .phone-input span:nth-child(2) { flex: 1; }
   .phone-input span:last-child { color: var(--rose); font-weight: 600; }
   @media (max-width: 880px) {
     .hero .wrap { grid-template-columns: 1fr; text-align: center; justify-items: center; }
@@ -204,16 +207,17 @@
     <div class="phone" aria-hidden="true">
       <div class="phone-screen">
         <div class="phone-top">
-          <div class="pl">Hey Girl</div>
+          <div class="pl">Hey Girl!</div>
           <div class="ps">Bride &amp; Groom · 100 days to go</div>
         </div>
         <div class="phone-body">
           <div class="b you">What's left in the flowers budget?</div>
-          <div class="b them">You've got <strong>$1,800</strong> left of your $3,000 flowers estimate 🌸 Want me to find florists in your range?</div>
-          <div class="b you">Yes please!</div>
-          <div class="b them">On it. Three near your venue, all reviewed 4.8★+ ✨</div>
+          <div class="b them">You've got <strong>$1,800</strong> left of your $3,000 flowers estimate 🌸 Heads up — the <strong>$1,200 balance is due Sept 5</strong>.</div>
+          <div class="chip-add">📅 Add "Floral balance due" to calendar</div>
+          <div class="b you">Yes, add it!</div>
+          <div class="b them">Done — it's on your calendar. Want me to find florists in your range too?</div>
         </div>
-        <div class="phone-input"><span>Ask Hey Girl anything…</span><span>Send</span></div>
+        <div class="phone-input"><span class="plus">+</span><span>Ask Hey Girl anything…</span><span>Send</span></div>
       </div>
     </div>
   </div>
