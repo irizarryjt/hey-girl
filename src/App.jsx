@@ -429,7 +429,7 @@ function CoupleApp() {
                 </button>
               ))}
               <button className={`tab-more ${!MOBILE_PRIMARY.includes(tab) ? 'active' : ''}`} onClick={() => setMoreOpen((o) => !o)} aria-label="More tabs">
-                •••
+                ••• More
               </button>
             </>
           )}
