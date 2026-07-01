@@ -170,7 +170,7 @@ const seedDecisions = [
 // Detailed main wedding events (richer than calendar items). The ceremony's
 // shared fields live on `details`, so they populate the Details tab + guest view.
 export function emptyWeddingEvent(extra = {}) {
-  return { id: crypto.randomUUID(), key: '', name: 'New event', date: '', time: '', endTime: '', venueName: '', venueAddress: '', dressCode: '', kidFriendly: false, guestVisible: false, notes: '', ...extra }
+  return { id: crypto.randomUUID(), key: '', name: 'New event', date: '', time: '', endTime: '', venueName: '', venueAddress: '', dressCode: '', parking: '', kidFriendly: false, guestVisible: false, notes: '', ...extra }
 }
 
 const GUEST_VISIBLE_KEYS = ['ceremony', 'reception', 'welcome', 'brunch']

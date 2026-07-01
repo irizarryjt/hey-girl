@@ -3,7 +3,7 @@ import { icsForEvents, downloadICS, eventFilename } from '../lib/ics.js'
 
 // For the ceremony, these fields live on `details` (so they also show on the
 // Details tab and to guests). Everything else lives on the wedding event itself.
-const DETAIL_MAP = { date: 'date', time: 'time', venueName: 'venueName', venueAddress: 'venueAddress', dressCode: 'dressCode' }
+const DETAIL_MAP = { date: 'date', time: 'time', venueName: 'venueName', venueAddress: 'venueAddress', dressCode: 'dressCode', parking: 'parking' }
 
 export default function Events({ weddingEvents, addWeddingEvent, updateWeddingEvent, removeWeddingEvent, details, setDetails }) {
   const [name, setName] = useState('')
@@ -76,9 +76,10 @@ export default function Events({ weddingEvents, addWeddingEvent, updateWeddingEv
             </div>
             <label className="gd-field full"><span>Venue</span><input value={getVal(ev, 'venueName')} onChange={(e) => setVal(ev, 'venueName', e.target.value)} placeholder="Venue name" /></label>
             <label className="gd-field full"><span>Address</span><input value={getVal(ev, 'venueAddress')} onChange={(e) => setVal(ev, 'venueAddress', e.target.value)} placeholder="Street, city, state" /></label>
+            <label className="gd-field full"><span>Parking</span><input value={getVal(ev, 'parking')} onChange={(e) => setVal(ev, 'parking', e.target.value)} placeholder="Where and how guests can park" /></label>
             <label className="ck"><input type="checkbox" checked={!!ev.kidFriendly} onChange={(e) => updateWeddingEvent(ev.id, { kidFriendly: e.target.checked })} /> Kid-friendly (guests can ask about this)</label>
             <label className="ck"><input type="checkbox" checked={!!ev.guestVisible} onChange={() => toggleGuestVisible(ev)} /> Make event visible to guests</label>
-            {ev.guestVisible && <span className="badge alt">Shared with guests</span>}
+            {ev.guestVisible && <span className="badge alt">Event visible to guests</span>}
             <label className="gd-field full"><span>Notes</span><textarea rows="2" value={ev.notes} onChange={(e) => updateWeddingEvent(ev.id, { notes: e.target.value })} placeholder="Anything helpful about this event" /></label>
             {icsEventFor(ev) && (
               <button

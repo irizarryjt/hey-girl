@@ -1,13 +1,8 @@
 import { composeCoupleNames, BRIDAL_ROLES } from '../lib/store.js'
 
-// coupleNames is derived from the name fields, so it's not edited directly here.
+// The ceremony's date/time/venue/dress code/parking are edited on the Events tab
+// (they auto-fill the read-only Events section below). Only these live here.
 const FIELDS = [
-  ['date', 'Date', 'date'],
-  ['time', 'Time'],
-  ['venueName', 'Venue name'],
-  ['venueAddress', 'Venue address'],
-  ['dressCode', 'Dress code'],
-  ['parking', 'Parking'],
   ['hotelBlock', 'Hotel block'],
   ['extraNotes', 'Extra notes (public)', 'textarea'],
 ]
@@ -75,7 +70,8 @@ export default function Details({ details, setDetails, weddingEvents = [], guest
         </label>
       )}
 
-      <h3 className="section-title" style={{ marginTop: '20px' }}>Wedding Ceremony details</h3>
+      <h3 className="section-title" style={{ marginTop: '20px' }}>Additional details</h3>
+      <p className="hint">The ceremony's date, time, venue, address, dress code, and parking are edited on the <strong>Events</strong> tab.</p>
       <div className="form-grid">
         {FIELDS.map(([key, label, type]) => (
           <label key={key} className={type === 'textarea' ? 'full' : ''}>
