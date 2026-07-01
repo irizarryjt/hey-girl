@@ -163,15 +163,17 @@ const seedDecisions = [
 // Detailed main wedding events (richer than calendar items). The ceremony's
 // shared fields live on `details`, so they populate the Details tab + guest view.
 export function emptyWeddingEvent(extra = {}) {
-  return { id: crypto.randomUUID(), key: '', name: 'New event', date: '', time: '', endTime: '', venueName: '', venueAddress: '', dressCode: '', kidFriendly: false, notes: '', ...extra }
+  return { id: crypto.randomUUID(), key: '', name: 'New event', date: '', time: '', endTime: '', venueName: '', venueAddress: '', dressCode: '', kidFriendly: false, guestVisible: false, notes: '', ...extra }
 }
 
+const GUEST_VISIBLE_KEYS = ['ceremony', 'reception', 'welcome', 'brunch']
+
 const seedWeddingEvents = [
-  { id: 'we1', key: 'rehearsal', name: 'Rehearsal Dinner', date: '2026-09-18', time: '6:00 PM', endTime: '8:30 PM', venueName: 'Sonoma Bistro', venueAddress: '', dressCode: 'Cocktail', kidFriendly: false, notes: 'Wedding party + close family.' },
-  { id: 'we2', key: 'ceremony', name: 'Wedding Ceremony', date: '', time: '', endTime: '5:00 PM', venueName: '', venueAddress: '', dressCode: '', kidFriendly: true, notes: 'Outdoor ceremony in the garden.' },
-  { id: 'we3', key: 'reception', name: 'Wedding Reception', date: '2026-09-19', time: '5:30 PM', endTime: '11:00 PM', venueName: 'The Rosewood Barn', venueAddress: '1200 Vineyard Ln, Sonoma, CA', dressCode: 'Garden formal', kidFriendly: true, notes: 'Dinner, toasts, and dancing. Kid-friendly until 8 PM.' },
-  { id: 'we4', key: 'welcome', name: 'Welcome Party', date: '2026-09-18', time: '8:00 PM', endTime: '', venueName: '', venueAddress: '', dressCode: 'Casual', kidFriendly: true, notes: 'Optional — for out-of-town guests.' },
-  { id: 'we5', key: 'brunch', name: 'Day-After Brunch', date: '2026-09-20', time: '10:00 AM', endTime: '', venueName: '', venueAddress: '', dressCode: 'Casual', kidFriendly: true, notes: '' },
+  { id: 'we1', key: 'rehearsal', name: 'Rehearsal Dinner', date: '2026-09-18', time: '6:00 PM', endTime: '8:30 PM', venueName: 'Sonoma Bistro', venueAddress: '', dressCode: 'Cocktail', kidFriendly: false, guestVisible: false, notes: 'Wedding party + close family.' },
+  { id: 'we2', key: 'ceremony', name: 'Wedding Ceremony', date: '', time: '', endTime: '5:00 PM', venueName: '', venueAddress: '', dressCode: '', kidFriendly: true, guestVisible: true, notes: 'Outdoor ceremony in the garden.' },
+  { id: 'we3', key: 'reception', name: 'Wedding Reception', date: '2026-09-19', time: '5:30 PM', endTime: '11:00 PM', venueName: 'The Rosewood Barn', venueAddress: '1200 Vineyard Ln, Sonoma, CA', dressCode: 'Garden formal', kidFriendly: true, guestVisible: true, notes: 'Dinner, toasts, and dancing. Kid-friendly until 8 PM.' },
+  { id: 'we4', key: 'welcome', name: 'Welcome Party', date: '2026-09-18', time: '8:00 PM', endTime: '', venueName: '', venueAddress: '', dressCode: 'Casual', kidFriendly: true, guestVisible: true, notes: 'Optional — for out-of-town guests.' },
+  { id: 'we5', key: 'brunch', name: 'Day-After Brunch', date: '2026-09-20', time: '10:00 AM', endTime: '', venueName: '', venueAddress: '', dressCode: 'Casual', kidFriendly: true, guestVisible: true, notes: '' },
 ]
 
 export const defaultHoneymoon = {
@@ -281,7 +283,11 @@ function migrateDecisions(decisions) {
 }
 function migrateWeddingEvents(weddingEvents) {
   if (!Array.isArray(weddingEvents)) return seedWeddingEvents
-  return weddingEvents.map((e) => ({ ...emptyWeddingEvent(), ...e, id: e.id || crypto.randomUUID() }))
+  return weddingEvents.map((e) => {
+    const m = { ...emptyWeddingEvent(), ...e, id: e.id || crypto.randomUUID() }
+    if (typeof e.guestVisible !== 'boolean') m.guestVisible = GUEST_VISIBLE_KEYS.includes(e.key)
+    return m
+  })
 }
 
 // Couple names captured at sign-up are stashed here until their wedding row is

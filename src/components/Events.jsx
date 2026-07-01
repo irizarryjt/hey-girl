@@ -23,6 +23,16 @@ export default function Events({ weddingEvents, addWeddingEvent, updateWeddingEv
     else updateWeddingEvent(ev.id, { [field]: value })
   }
 
+  // Toggle guest visibility, confirming first (adding or removing).
+  function toggleGuestVisible(ev) {
+    const on = !ev.guestVisible
+    const msg = on
+      ? `Make "${ev.name || 'this event'}" visible to your guests? They'll be able to see it and ask Hey Girl about it.`
+      : `Hide "${ev.name || 'this event'}" from your guests? They'll no longer see it.`
+    if (!window.confirm(msg)) return
+    updateWeddingEvent(ev.id, { guestVisible: on })
+  }
+
   // Build a downloadable calendar event (all-day; time/dress code go in notes).
   function icsEventFor(ev) {
     const date = getVal(ev, 'date')
@@ -67,6 +77,8 @@ export default function Events({ weddingEvents, addWeddingEvent, updateWeddingEv
             <label className="gd-field full"><span>Venue</span><input value={getVal(ev, 'venueName')} onChange={(e) => setVal(ev, 'venueName', e.target.value)} placeholder="Venue name" /></label>
             <label className="gd-field full"><span>Address</span><input value={getVal(ev, 'venueAddress')} onChange={(e) => setVal(ev, 'venueAddress', e.target.value)} placeholder="Street, city, state" /></label>
             <label className="ck"><input type="checkbox" checked={!!ev.kidFriendly} onChange={(e) => updateWeddingEvent(ev.id, { kidFriendly: e.target.checked })} /> Kid-friendly (guests can ask about this)</label>
+            <label className="ck"><input type="checkbox" checked={!!ev.guestVisible} onChange={() => toggleGuestVisible(ev)} /> Make event visible to guests</label>
+            {ev.guestVisible && <span className="badge alt">Shared with guests</span>}
             <label className="gd-field full"><span>Notes</span><textarea rows="2" value={ev.notes} onChange={(e) => updateWeddingEvent(ev.id, { notes: e.target.value })} placeholder="Anything helpful about this event" /></label>
             {icsEventFor(ev) && (
               <button

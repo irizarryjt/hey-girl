@@ -285,6 +285,7 @@ function publicGuestPayload(state = {}) {
   // Main events (so guests can ask about times, dress code, kid-friendliness, weather).
   const wevents = Array.isArray(state.weddingEvents) ? state.weddingEvents : []
   out.events = wevents
+    .filter((e) => e.guestVisible)
     .map((e) => {
       const isCer = e.key === 'ceremony'
       return {

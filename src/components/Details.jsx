@@ -46,7 +46,7 @@ export default function Details({ details, setDetails }) {
         ))}
       </div>
 
-      <h3 className="section-title" style={{ marginTop: '20px' }}>Wedding details</h3>
+      <h3 className="section-title" style={{ marginTop: '20px' }}>Wedding Ceremony details</h3>
       <div className="form-grid">
         {FIELDS.map(([key, label, type]) => (
           <label key={key} className={type === 'textarea' ? 'full' : ''}>
