@@ -50,18 +50,9 @@ export default function Registry({ details, setDetails, onAskHeyGirl }) {
             </div>
           ))}
           <button type="button" className="add-member" onClick={addRegistry}>+ Add registry</button>
-
-          <label className="ck" style={{ marginTop: '12px' }}>
-            <input
-              type="checkbox"
-              checked={!!details.stickToRegistry}
-              onChange={(e) => setDetails({ ...details, stickToRegistry: e.target.checked })}
-            />
-            We'd prefer guests choose gifts from our registry
-          </label>
           <p className="hint">
-            Guests only see this preference if you turn on “Allow guests to inquire if you prefer that guests stick
-            to the registry items?” on the Shared Details tab.
+            Whether guests are told you'd prefer they stick to the registry is controlled on the
+            <strong> Shared Details</strong> tab.
           </p>
         </div>
       )}

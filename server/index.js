@@ -282,7 +282,7 @@ function publicGuestPayload(state = {}) {
     out.registries = (Array.isArray(d.registries) ? d.registries : [])
       .filter((r) => r && r.url)
       .map((r) => ({ name: r.name || '', url: r.url }))
-    if (d.allowStickToRegistryInquiry) out.stickToRegistry = !!d.stickToRegistry
+    if (d.allowStickToRegistryInquiry) out.stickToRegistry = true
   } else {
     out.registryMessage = d.registryMessage || ''
   }
