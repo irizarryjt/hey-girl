@@ -506,7 +506,8 @@ button:disabled { opacity: .5; cursor: default; }
 .tl-notes { margin-top: 6px; width: 100%; padding: 6px 9px; border: 1px dashed var(--line); border-radius: 8px; font-size: 13px; }
 .tl-actions { display: flex; flex-direction: column; gap: 6px; align-items: flex-end; flex-shrink: 0; }
 .tl-actions input[type="date"] { padding: 4px 6px; border: 1px solid var(--line); border-radius: 8px; font-size: 12px; }
-.tl-lock { flex-shrink: 0; opacity: .6; font-size: 15px; }
+.tl-lock { flex-shrink: 0; opacity: .6; font-size: 15px; background: none; border: none; padding: 2px 4px; cursor: pointer; line-height: 1; border-radius: 8px; transition: opacity .15s, background .15s; }
+.tl-lock:hover { opacity: 1; background: var(--blush); }
 .tl-download { margin-top: 8px; background: transparent; border: 1px solid var(--rose); color: var(--rose-deep); border-radius: 999px; padding: 5px 12px; font-size: 12.5px; font-weight: 600; cursor: pointer; transition: background .15s; }
 .tl-download:hover { background: var(--blush); }
 .download-all { margin-top: 18px; width: 100%; padding: 12px; border: 1px solid var(--rose); background: var(--rose); color: #fff; border-radius: 12px; font-weight: 700; font-size: 14px; cursor: pointer; transition: background .2s; }

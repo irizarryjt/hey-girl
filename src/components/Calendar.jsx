@@ -34,7 +34,7 @@ function fmt(str) {
 const money = (n) =>
   `$${Math.round(Number(n) || 0).toLocaleString('en-US')}`
 
-export default function Calendar({ details, events, budget, weddingEvents = [], addEvent, updateEvent, removeEvent }) {
+export default function Calendar({ details, events, budget, weddingEvents = [], addEvent, updateEvent, removeEvent, onOpenTab }) {
   const [title, setTitle] = useState('')
   const [date, setDate] = useState('')
 
@@ -161,9 +161,9 @@ export default function Calendar({ details, events, budget, weddingEvents = [], 
                   📥 Add to my calendar
                 </button>
               </div>
-              {e.anchor && <span className="tl-lock" title="Set on the Details tab">📋</span>}
-              {e.payment && <span className="tl-lock" title="From the Budget tab">💰</span>}
-              {e.wevent && <span className="tl-lock" title="From the Events tab">🎉</span>}
+              {e.anchor && <button type="button" className="tl-lock" title="Edit on the Events tab" onClick={() => onOpenTab?.('events')}>🎉</button>}
+              {e.payment && <button type="button" className="tl-lock" title="Edit on the Budget tab" onClick={() => onOpenTab?.('budget')}>💰</button>}
+              {e.wevent && <button type="button" className="tl-lock" title="Edit on the Events tab" onClick={() => onOpenTab?.('events')}>🎉</button>}
               {editable && (
                 <div className="tl-actions">
                   <input

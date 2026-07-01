@@ -304,6 +304,7 @@ function CoupleApp() {
             addEvent={store.addEvent}
             updateEvent={store.updateEvent}
             removeEvent={store.removeEvent}
+            onOpenTab={setTab}
           />
         )}
 
