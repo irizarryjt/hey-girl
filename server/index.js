@@ -330,7 +330,15 @@ app.get('/api/health/supabase', async (req, res) => {
     if (error) throw error
     res.json({ ok: true, configured: true, weddings: count })
   } catch (err) {
-    res.json({ ok: false, configured: true, error: String(err?.message || err) })
+    res.json({
+      ok: false,
+      configured: true,
+      error: err?.message || null,
+      code: err?.code || null,
+      hint: err?.hint || null,
+      details: err?.details || null,
+      raw: (() => { try { return JSON.stringify(err) } catch { return String(err) } })(),
+    })
   }
 })
 
