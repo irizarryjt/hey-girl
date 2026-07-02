@@ -123,6 +123,9 @@ export default function Login({ recoveryMode = false, onRecovered }) {
       <div className={`auth-card ${mode === 'signup' ? 'signup' : ''}`}>
         <div className="auth-logo">Hey&nbsp;Girl!</div>
         <p className="auth-sub">{mode === 'signup' ? 'Create your account' : 'Welcome back'}</p>
+        <p className="hint" style={{ textAlign: 'center' }}>
+          Here for someone's wedding? <a href="/app/?guest=1">Guest login →</a> — no account needed.
+        </p>
         <form onSubmit={submit} className="auth-form">
           {mode === 'signup' && <div className="auth-section">Hey Girl Login</div>}
           <label>

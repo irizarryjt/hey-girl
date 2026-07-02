@@ -1,19 +1,27 @@
 import { useState } from 'react'
 import { buildGuestLink, buildLocalGuestLink } from '../lib/share.js'
 
+// Short, invitation-friendly wedding code: first 8 chars of the share token,
+// shown as XXXX-XXXX. The server resolves it back to the full token.
+function weddingCode(token) {
+  if (!token || token.length < 8) return null
+  return `${token.slice(0, 4)}-${token.slice(4, 8)}`.toUpperCase()
+}
+
 export default function Share({ details, shareToken, approxSize }) {
-  const [copied, setCopied] = useState(false)
+  const [copied, setCopied] = useState('')
   // Token link when signed in (secure, nothing private in URL); else local fallback.
   const link = shareToken ? buildGuestLink(shareToken) : buildLocalGuestLink(details, approxSize)
+  const code = weddingCode(shareToken)
 
-  async function copy() {
+  async function copy(text, which) {
     try {
-      await navigator.clipboard.writeText(link)
+      await navigator.clipboard.writeText(text)
     } catch {
       // clipboard may be blocked on http://; fall back to selecting the field
     }
-    setCopied(true)
-    setTimeout(() => setCopied(false), 1800)
+    setCopied(which)
+    setTimeout(() => setCopied(''), 1800)
   }
 
   return (
@@ -27,8 +35,22 @@ export default function Share({ details, shareToken, approxSize }) {
 
       <div className="share-box">
         <input className="share-link" value={link} readOnly onFocus={(e) => e.target.select()} />
-        <button onClick={copy}>{copied ? 'Copied!' : 'Copy link'}</button>
+        <button onClick={() => copy(link, 'link')}>{copied === 'link' ? 'Copied!' : 'Copy link'}</button>
       </div>
+
+      {code && (
+        <>
+          <h3 className="section-title" style={{ marginTop: '1.5rem' }}>Your wedding code</h3>
+          <p className="hint">
+            Putting it on paper? Guests can visit the site, tap <strong>Guest Login</strong>, and enter
+            this code instead of typing a long link — perfect for invitations and save-the-dates.
+          </p>
+          <div className="share-box">
+            <input className="share-link" value={code} readOnly onFocus={(e) => e.target.select()} />
+            <button onClick={() => copy(code, 'code')}>{copied === 'code' ? 'Copied!' : 'Copy code'}</button>
+          </div>
+        </>
+      )}
 
       <div className="share-actions">
         <a className="ghost-btn" href={link} target="_blank" rel="noreferrer">Preview guest view ↗</a>

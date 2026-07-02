@@ -12,7 +12,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const DIST_DIR = path.resolve(__dirname, '..', 'dist')
 
 const PORT = process.env.PORT || 8787
-const MODEL = process.env.CLAUDE_MODEL || 'claude-opus-4-8'
+const MODEL = process.env.CLAUDE_MODEL || 'claude-fable-5'
 // Ordered fallback chain, tried in turn when a model is overloaded (529/503).
 // Override with a comma-separated FALLBACK_MODELS list; FALLBACK_MODEL (legacy,
 // single value) still works. Default: Opus → Sonnet → Haiku.
@@ -57,6 +57,7 @@ function makeLimiter({ limit, windowMs, message }) {
 const chatLimiter = makeLimiter({ limit: 30, windowMs: 60000, message: "Hey Girl's getting a lot of messages right now — give it a minute and try again. 💕" })
 const accessLimiter = makeLimiter({ limit: 12, windowMs: 60000, message: 'Too many attempts — please wait a minute and try again.' })
 const rsvpLimiter = makeLimiter({ limit: 20, windowMs: 60000, message: 'Too many RSVP attempts — please wait a minute and try again.' })
+const codeLimiter = makeLimiter({ limit: 12, windowMs: 60000, message: 'Too many attempts — please wait a minute and try again.' })
 
 // --- Optional password gate ----------------------------------------
 // If SITE_PASSWORD is set, the whole site (landing, app, and API) is locked
@@ -338,6 +339,32 @@ app.get('/api/guest/:token', async (req, res) => {
   }
 })
 
+// Resolve a short wedding code to the full share token. The code is simply the
+// first 8 hex chars of the share token (shown as XXXX-XXXX on the Share tab), so
+// nothing extra is stored. Guests enter it on the guest entry page (/app/?guest=1).
+app.get('/api/guest-code/:code', codeLimiter, async (req, res) => {
+  if (!sbAdmin) return res.status(503).json({ error: 'Guest sharing isn’t set up yet.' })
+  const code = String(req.params.code || '').toLowerCase().replace(/[^0-9a-z]/g, '')
+  if (!/^[0-9a-f]{8}$/.test(code)) {
+    return res.status(400).json({ error: 'That doesn’t look like a wedding code — it should be 8 letters/numbers, like 3F9A-C21B.' })
+  }
+  try {
+    const { data, error } = await sbAdmin
+      .from('weddings')
+      .select('share_token')
+      .like('share_token', `${code}%`)
+      .limit(2)
+    if (error) throw error
+    if (!data || data.length !== 1) {
+      return res.status(404).json({ error: 'No wedding found for that code — double-check it with the couple.' })
+    }
+    res.json({ token: data[0].share_token })
+  } catch (err) {
+    console.error('Guest code lookup error:', err?.message || err)
+    res.status(500).json({ error: 'Could not look up that code right now.' })
+  }
+})
+
 // ---- Guest RSVP (open, name-matched, protected by a guest-chosen password) ----
 
 function hashPassword(password) {
@@ -549,6 +576,17 @@ app.post('/api/chat', chatLimiter, async (req, res) => {
 // (e.g. on Render) this same server serves the built site from /dist.
 const hasBuild = fs.existsSync(DIST_DIR)
 if (hasBuild) {
+  // Back-compat: guest links used to point at the root (/?guest=1&w=…), which now
+  // serves the static landing page. Redirect them to /app/ where the React router
+  // handles them. Must run BEFORE express.static (which would serve index.html).
+  // The browser carries any #hash fragment (legacy local links) along on its own.
+  app.get('/', (req, res, next) => {
+    if (req.query.guest === '1') {
+      const qi = req.originalUrl.indexOf('?')
+      return res.redirect(302, '/app/' + (qi >= 0 ? req.originalUrl.slice(qi) : ''))
+    }
+    next()
+  })
   app.use(express.static(DIST_DIR))
   // The app is multi-page: '/' = landing, '/app/' = the React app. Static
   // serving handles both; this fallback covers any /app/* deep paths.

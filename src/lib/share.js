@@ -38,15 +38,27 @@ function b64decode(str) {
 
 // Preferred (Supabase) link: an opaque share token. The guest's browser fetches
 // the public details from the server, so nothing private is ever in the URL.
+// Links point at /app/ (where the React router runs) — the root is the static
+// landing page, which can't handle guest params. The server also 302-redirects
+// old root-style guest links to /app/ for back-compat.
 export function buildGuestLink(token) {
-  const base = `${location.origin}/`
-  return `${base}?guest=1&w=${encodeURIComponent(token)}`
+  return `${location.origin}/app/?guest=1&w=${encodeURIComponent(token)}`
 }
 
 // Local-only fallback (no Supabase): encode the curated public details into the URL hash.
 export function buildLocalGuestLink(details, approxSize) {
   const payload = b64encode(JSON.stringify(curatePublic(details, approxSize)))
-  return `${location.origin}/?guest=1#w=${payload}`
+  return `${location.origin}/app/?guest=1#w=${payload}`
+}
+
+// True when the URL asks for the guest experience (?guest=1) — with or without
+// a token. Without one, the app shows the guest entry page (paste link / code).
+export function isGuestEntry() {
+  try {
+    return new URLSearchParams(location.search).get('guest') === '1'
+  } catch {
+    return false
+  }
 }
 
 // Read a share TOKEN from a guest link (?guest=1&w=token). Returns null if absent.

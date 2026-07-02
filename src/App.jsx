@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useStore, guestStats } from './lib/store.js'
-import { getSharedToken, getSharedDetails } from './lib/share.js'
+import { getSharedToken, getSharedDetails, isGuestEntry } from './lib/share.js'
 import { enableNotifications, showNotification } from './lib/notify.js'
 import { supabaseEnabled } from './lib/supabase.js'
 import { useSession, signOut } from './lib/auth.js'
@@ -21,6 +21,7 @@ import Faq from './components/Faq.jsx'
 import Home from './components/Home.jsx'
 import Login from './components/Login.jsx'
 import GuestGate from './components/GuestGate.jsx'
+import GuestEntry from './components/GuestEntry.jsx'
 
 // Tab layout mode: 'phone' (icon-only), 'narrow' (a few tabs + More), 'wide' (all).
 function useTabMode() {
@@ -87,12 +88,14 @@ function Splash({ text = 'Loading…' }) {
   )
 }
 
-// Top-level router: guest links bypass auth entirely.
+// Top-level router: guest links bypass auth entirely. A bare ?guest=1 (no
+// token) shows the guest entry page — paste a link or enter a wedding code.
 export default function App() {
   const token = getSharedToken()
   const legacy = getSharedDetails()
   if (token) return <GuestApp token={token} />
   if (legacy) return <GuestApp initialDetails={legacy} />
+  if (isGuestEntry()) return <GuestEntry />
   return <CoupleApp />
 }
 
@@ -305,7 +308,17 @@ function CoupleApp() {
             ]}
           />
         ) : tab === 'home' ? (
-          <Home details={store.details} stats={stats} budget={store.budget} onAskHeyGirl={askHeyGirl} onOpenChat={() => setTab('chat')} />
+          <Home
+            details={store.details}
+            stats={stats}
+            budget={store.budget}
+            events={store.events}
+            weddingEvents={store.weddingEvents}
+            decisions={store.decisions}
+            onAskHeyGirl={askHeyGirl}
+            onOpenChat={() => setTab('chat')}
+            onOpenTab={setTab}
+          />
         ) : (
           <>
             {tab !== 'share' && (

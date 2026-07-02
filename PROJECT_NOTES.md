@@ -58,8 +58,15 @@ npm run dev              # Vite on :5173 + Express proxy on :8787
 - Guests tab — RSVP tracking; Hey Girl answers in the same tidy breakdown style.
 - Shared Details tab — structured partner first/last name fields; display name is
   **First & First**; powers headers, guest view, share link, landing save-the-date.
-- Share tab — secure guest link via share token (`/?guest=1&w=<token>`); server returns
-  only public details. Local fallback encodes public details in URL hash.
+- Share tab — secure guest link via share token (`/app/?guest=1&w=<token>`); server
+  returns only public details. Local fallback encodes public details in URL hash.
+  Also shows a short **wedding code** (first 8 hex chars of the token, XXXX-XXXX) for
+  invitations; `GET /api/guest-code/:code` resolves it to the full token.
+- Guest entry page — `/app/?guest=1` (no token) shows a guest front door: paste the
+  guest link or enter the wedding code. Linked from the landing page ("Guest Login"
+  in the nav) and from the couple login screen. Old root-style guest links
+  (`/?guest=1&…`) 302-redirect to `/app/` (they previously landed on the static
+  landing page and were silently broken).
 - Document upload (📎/+ in chat) — extract text from PDF/.docx (pdfjs + mammoth) so Hey
   Girl pulls out vendor, costs, due dates, options, with add-to-budget/calendar buttons.
 - Notifications opt-in — on-device reminders for timeline tasks and budget balances due
