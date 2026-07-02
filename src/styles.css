@@ -339,6 +339,14 @@ button:disabled { opacity: .5; cursor: default; }
 .home-prompt { text-align: left; background: #fff; border: 1px solid var(--rose); color: var(--rose-deep); border-radius: 12px; padding: 11px 14px; font-size: 14px; font-weight: 600; cursor: pointer; }
 .home-prompt:hover { background: var(--blush); }
 
+/* Collapsible tab descriptions on Home */
+.faq-item.tg { padding: 0; }
+.tg-toggle { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 10px; background: none; border: none; padding: 14px 2px; cursor: pointer; font-size: 15px; font-weight: 700; color: var(--rose-deep); text-align: left; }
+.tg-toggle:hover { color: var(--rose); }
+.tg-arrow { color: var(--muted); font-size: 13px; flex-shrink: 0; }
+.tg-body { padding: 0 2px 14px; }
+.tg-body p { margin: 0; color: var(--ink); font-size: 14px; }
+
 /* ---- FAQ / How I work ---- */
 .faq { line-height: 1.55; }
 .faq-welcome {

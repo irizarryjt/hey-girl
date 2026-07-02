@@ -31,8 +31,9 @@ export default function Home({ details, onAskHeyGirl }) {
       </div>
 
       <h3 className="home-h">What's in each tab</h3>
+      <p className="hint">Tap any tab to see what it does.</p>
       <div className="faq">
-        <TabGuide />
+        <TabGuide collapsible />
       </div>
     </div>
   )

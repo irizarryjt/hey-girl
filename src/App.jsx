@@ -170,13 +170,13 @@ function GuestApp({ token, initialDetails }) {
 function CoupleApp() {
   const { session, ready, recovery, clearRecovery } = useSession()
   const store = useStore(session)
-  // Restore the last tab the couple was on (across refreshes), defaulting to chat.
+  // Land on Home after signing in; on refresh, restore the tab they were on.
   const [tab, setTab] = useState(() => {
     try {
       const saved = localStorage.getItem('heygirl.lastTab')
-      return TABS.some((t) => t.id === saved) ? saved : 'chat'
+      return TABS.some((t) => t.id === saved) ? saved : 'home'
     } catch {
-      return 'chat'
+      return 'home'
     }
   })
   useEffect(() => {
@@ -250,7 +250,7 @@ function CoupleApp() {
         <div className="topbar-actions">
           <a className="back-link" href="/">← site</a>
           {supabaseEnabled && session && (
-            <button className="back-link" onClick={() => signOut()}>Sign out</button>
+            <button className="back-link" onClick={() => { try { localStorage.removeItem('heygirl.lastTab') } catch {} ; signOut() }}>Sign out</button>
           )}
         </div>
       </header>
