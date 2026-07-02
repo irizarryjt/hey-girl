@@ -238,14 +238,14 @@ function CoupleApp() {
     <div className="app">
       <header className="topbar">
         <div className="brand">
-          <span className="logo">Hey&nbsp;Girl!</span>
-          <div className="brand-sub">
-            <span className="tagline">
-              {store.details.coupleNames}
-              {store.details.date ? ` · ${prettyDate(store.details.date)}` : ''}
-            </span>
+          <div className="brand-title">
+            <span className="logo">Hey&nbsp;Girl!</span>
             <button className="home-btn" onClick={() => setTab('home')} title="Home">🏠 Home</button>
           </div>
+          <span className="tagline">
+            {store.details.coupleNames}
+            {store.details.date ? ` · ${prettyDate(store.details.date)}` : ''}
+          </span>
         </div>
         <div className="topbar-actions">
           <a className="back-link" href="/">← site</a>
@@ -305,7 +305,7 @@ function CoupleApp() {
             ]}
           />
         ) : tab === 'home' ? (
-          <Home details={store.details} onAskHeyGirl={askHeyGirl} />
+          <Home details={store.details} stats={stats} budget={store.budget} onAskHeyGirl={askHeyGirl} onOpenChat={() => setTab('chat')} />
         ) : (
           <>
             {tab !== 'share' && (

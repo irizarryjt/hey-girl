@@ -1,4 +1,5 @@
 import TabGuide from './TabGuide.jsx'
+import { budgetStats } from '../lib/store.js'
 
 const PROMPTS = [
   'Help me build a day-of timeline',
@@ -7,6 +8,8 @@ const PROMPTS = [
   'Help me word our invitations',
   "What's left in my budget?",
 ]
+
+const money = (n) => `$${Math.round(Number(n) || 0).toLocaleString('en-US')}`
 
 function daysUntil(str) {
   if (!str) return null
@@ -24,10 +27,11 @@ function prettyDate(str) {
   return new Date(y, m - 1, d).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })
 }
 
-export default function Home({ details, onAskHeyGirl }) {
+export default function Home({ details, stats = {}, budget, onAskHeyGirl, onOpenChat }) {
   const names = details?.coupleNames || 'you two'
   const days = daysUntil(details?.date)
   const dateStr = prettyDate(details?.date)
+  const bs = budgetStats(budget)
 
   return (
     <div className="panel home">
@@ -51,6 +55,8 @@ export default function Home({ details, onAskHeyGirl }) {
         )}
         {dateStr && <div className="home-date">{dateStr}</div>}
 
+        <button className="home-chat-btn" onClick={() => onOpenChat?.()}>💬 Chat with Hey Girl!</button>
+
         <p>
           I'm <strong>Hey Girl</strong> — your always-on wedding planning bestie. I know your details,
           budget, calendar, guests, and events, so I can help you plan, stay organized, and answer
@@ -58,7 +64,13 @@ export default function Home({ details, onAskHeyGirl }) {
         </p>
       </div>
 
-      <h3 className="home-h">Ask me anything — here are a few ideas</h3>
+      <div className="home-glance">
+        <div className="glance"><span className="glance-num">{stats.attending || 0}</span><span className="glance-label">attending</span></div>
+        <div className="glance"><span className="glance-num">{stats.pending || 0}</span><span className="glance-label">awaiting RSVP</span></div>
+        <div className="glance"><span className={`glance-num ${bs.remaining < 0 ? 'bad' : ''}`}>{money(Math.abs(bs.remaining))}</span><span className="glance-label">{bs.remaining < 0 ? 'over budget' : 'budget left'}</span></div>
+      </div>
+
+      <h3 className="home-h center">Ask me anything</h3>
       <div className="home-prompts">
         {PROMPTS.map((p) => (
           <button key={p} className="home-prompt" onClick={() => onAskHeyGirl?.(p)}>
@@ -69,7 +81,7 @@ export default function Home({ details, onAskHeyGirl }) {
 
       <h3 className="home-h">What's in each tab</h3>
       <p className="hint">Tap any tab to see what it does.</p>
-      <div className="faq">
+      <div className="home-guide faq">
         <TabGuide collapsible />
       </div>
     </div>
