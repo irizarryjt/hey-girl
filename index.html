@@ -326,5 +326,25 @@
   </div>
 </footer>
 
+<script>
+  // Clean up stale service workers from when the app lived at the site root.
+  // An old root-scoped worker hijacks every navigation (including /app/ guest
+  // links) and serves this landing page from cache instead. Unregister anything
+  // not scoped to /app/, then reload once so this visit gets clean pages.
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then(function (regs) {
+      var removed = false
+      regs.forEach(function (reg) {
+        if (new URL(reg.scope).pathname.indexOf('/app/') !== 0) {
+          reg.unregister()
+          removed = true
+        }
+      })
+      if (removed && navigator.serviceWorker.controller) {
+        setTimeout(function () { location.reload() }, 100)
+      }
+    }).catch(function () {})
+  }
+</script>
 </body>
 </html>

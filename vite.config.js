@@ -11,6 +11,15 @@ export default defineConfig({
       includeAssets: ['favicon.svg'],
       // The installable app lives under /app/ now (the root is the marketing landing page).
       scope: '/app/',
+      workbox: {
+        // App navigations must always get the APP shell — never fall back to the
+        // root landing page (the generateSW default is 'index.html', which after
+        // the landing-page move would serve the marketing page for /app/ routes
+        // on any browser with a stale service worker).
+        navigateFallback: '/app/index.html',
+        navigateFallbackAllowlist: [/^\/app\//],
+        cleanupOutdatedCaches: true,
+      },
       manifest: {
         name: 'Hey Girl — Wedding Planning',
         short_name: 'Hey Girl',
