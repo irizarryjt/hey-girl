@@ -324,15 +324,19 @@ app.get('/api/health', (req, res) => {
 // Deep health: verify the server can actually REACH Supabase — env vars being
 // present doesn't mean the key is valid. Reports only error text, never keys.
 app.get('/api/health/supabase', async (req, res) => {
+  const urlHost = (() => { try { return new URL(SB_URL).host } catch { return SB_URL || null } })()
   if (!sbAdmin) return res.json({ ok: false, configured: false, error: 'SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY not set' })
   try {
-    const { error, count } = await sbAdmin.from('weddings').select('id', { count: 'exact', head: true })
+    // NOTE: not a head/count query — HEAD responses have no body, which
+    // swallows the real error message when something is wrong.
+    const { data, error } = await sbAdmin.from('weddings').select('id').limit(1)
     if (error) throw error
-    res.json({ ok: true, configured: true, weddings: count })
+    res.json({ ok: true, configured: true, urlHost, sawRows: Array.isArray(data) ? data.length : null })
   } catch (err) {
     res.json({
       ok: false,
       configured: true,
+      urlHost,
       error: err?.message || null,
       code: err?.code || null,
       hint: err?.hint || null,
