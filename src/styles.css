@@ -331,12 +331,30 @@ button:disabled { opacity: .5; cursor: default; }
 .guestmode-wrap .chat { flex: 1; }
 
 /* ---- Home / landing dashboard ---- */
-.home-hero { background: linear-gradient(160deg, var(--blush), var(--bg-2)); border: 1px solid var(--line); border-radius: 16px; padding: 18px; margin-bottom: 18px; }
-.home-hero h2 { font-family: var(--serif); font-size: 24px; font-weight: 600; color: var(--rose-deep); margin: 0 0 8px; }
-.home-hero p { margin: 0; font-size: 14.5px; line-height: 1.55; color: var(--ink); }
-.home-h { font-family: var(--serif); font-size: 18px; font-weight: 600; color: var(--rose-deep); margin: 20px 0 10px; }
+.home-hero {
+  position: relative; overflow: hidden;
+  background: linear-gradient(140deg, var(--rose), var(--rose-deep));
+  color: #fff; border: none; border-radius: 22px; padding: 30px 22px; margin-bottom: 22px;
+  text-align: center; box-shadow: var(--shadow);
+}
+.home-hero::before {
+  content: ''; position: absolute; inset: 0; z-index: 0;
+  background: radial-gradient(60% 60% at 82% 12%, rgba(201,163,106,0.28), transparent 60%);
+}
+.home-hero > * { position: relative; z-index: 1; }
+.home-eyebrow { display: inline-block; background: rgba(255,255,255,0.18); color: #fff; padding: 5px 14px; border-radius: 999px; font-size: 12.5px; font-weight: 600; letter-spacing: .3px; margin-bottom: 14px; }
+.home-hero h2 { font-family: var(--serif); font-weight: 600; font-size: clamp(26px, 6vw, 40px); line-height: 1.08; letter-spacing: -0.3px; margin: 0 0 14px; color: #fff; }
+.home-count { display: flex; flex-direction: column; align-items: center; gap: 2px; margin: 4px 0 6px; }
+.home-count-num { font-family: var(--serif); font-size: 54px; font-weight: 600; color: var(--gold); line-height: 1; }
+.home-count-num.sm { font-size: 26px; color: #fff; }
+.home-count-label { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,0.85); }
+.home-date { font-family: var(--serif); font-style: italic; font-size: 16px; color: rgba(255,255,255,0.92); margin-top: 8px; }
+.home-hero p { margin: 14px auto 0; max-width: 42ch; color: rgba(255,255,255,0.94); font-size: 14.5px; line-height: 1.55; }
+.home-hero p strong { color: #fff; }
+
+.home-h { font-family: var(--serif); font-size: 20px; font-weight: 600; color: var(--rose-deep); margin: 22px 0 10px; }
 .home-prompts { display: flex; flex-direction: column; gap: 8px; }
-.home-prompt { text-align: left; background: #fff; border: 1px solid var(--rose); color: var(--rose-deep); border-radius: 12px; padding: 11px 14px; font-size: 14px; font-weight: 600; cursor: pointer; }
+.home-prompt { text-align: left; background: #fff; border: 1px solid var(--rose); color: var(--rose-deep); border-radius: 12px; padding: 12px 15px; font-size: 14px; font-weight: 600; cursor: pointer; box-shadow: 0 1px 3px rgba(181,131,141,0.12); transition: background .15s; }
 .home-prompt:hover { background: var(--blush); }
 
 /* Collapsible tab descriptions on Home */
