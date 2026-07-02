@@ -321,6 +321,19 @@ app.get('/api/health', (req, res) => {
   res.json({ ok: true, hasKey: !!apiKey, model: MODEL, modelChain: MODEL_CHAIN, guestModel: GUEST_MODEL, guestModelChain: GUEST_CHAIN, guestSharing: !!sbAdmin })
 })
 
+// Deep health: verify the server can actually REACH Supabase — env vars being
+// present doesn't mean the key is valid. Reports only error text, never keys.
+app.get('/api/health/supabase', async (req, res) => {
+  if (!sbAdmin) return res.json({ ok: false, configured: false, error: 'SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY not set' })
+  try {
+    const { error, count } = await sbAdmin.from('weddings').select('id', { count: 'exact', head: true })
+    if (error) throw error
+    res.json({ ok: true, configured: true, weddings: count })
+  } catch (err) {
+    res.json({ ok: false, configured: true, error: String(err?.message || err) })
+  }
+})
+
 // Public, read-only: returns ONLY whitelisted wedding details for a share token.
 app.get('/api/guest/:token', async (req, res) => {
   if (!sbAdmin) return res.status(503).json({ error: 'Guest sharing isn’t set up yet.' })
